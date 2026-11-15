@@ -84,7 +84,7 @@ function tool(name){
 }
 document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(!b)return;
- if(b.dataset.page){S.page=b.dataset.page;render();if(S.page==='quran')load();}
+ if(b.dataset.page){if(qiblaListener){qiblaListener.remove();qiblaListener=null;window.Capacitor?.Plugins?.QiblaCompass?.stop();}S.page=b.dataset.page;render();if(S.page==='quran')load();}
  if(b.hasAttribute('data-search-ayah')){const q=document.querySelector('#ayah-search')?.value.trim();if(!q){toast('Masukkan kata yang ingin dicari.');return;}S.searchAyahQuery=q;S.searchLoading=true;S.searchResults=[];document.querySelector('#ayah-search-results').innerHTML='<p class="empty">Mencari ayat...</p>';try{const data=await searchAyahs(q);S.searchResults=data.matches||[];document.querySelector('#ayah-search-results').innerHTML=S.searchResults.length?S.searchResults.map(searchResultCard).join(''):'<p class="empty">Ayat tidak ditemukan.</p>';}catch(err){document.querySelector('#ayah-search-results').innerHTML='<p class="empty">'+esc(err.message)+'</p>';}finally{S.searchLoading=false;}}
  if(b.hasAttribute('data-toggle-words')){S.showWordTranslation=!S.showWordTranslation;render();return;}
  if(b.dataset.open)openSurah(b.dataset.open,b.dataset.ayah||1);
@@ -109,7 +109,7 @@ document.addEventListener('click',async e=>{
    render();
   }catch(err){toast('Tidak dapat membuka pilihan native.');console.error(err);}
  }
- if(b.dataset.tool)tool(b.dataset.tool);
+ if(b.dataset.tool){if(b.dataset.tool!=='qibla'&&qiblaListener){qiblaListener.remove();qiblaListener=null;window.Capacitor?.Plugins?.QiblaCompass?.stop();}tool(b.dataset.tool);}
  if(b.dataset.audio){const url=b.dataset.audio;if(audioPlayer&&!audioPlayer.paused&&activeAudioButton===b){audioPlayer.pause();b.textContent='▶ Dengarkan';activeAudioButton=null;}else{if(audioPlayer)audioPlayer.pause();if(activeAudioButton)activeAudioButton.textContent='▶ Dengarkan';audioPlayer=new Audio(url);activeAudioButton=b;b.textContent='Ⅱ Jeda';audioPlayer.addEventListener('ended',()=>{const finishedButton=activeAudioButton;if(finishedButton)finishedButton.textContent='▶ Dengarkan';activeAudioButton=null;const buttons=[...document.querySelectorAll('.audio-play')];const next=buttons[buttons.indexOf(finishedButton)+1];if(next)next.click();});audioPlayer.addEventListener('error',()=>{toast('Audio gagal diputar. Periksa koneksi internet.');if(activeAudioButton)activeAudioButton.textContent='▶ Dengarkan';activeAudioButton=null;});audioPlayer.play().catch(()=>{toast('Audio tidak dapat diputar.');b.textContent='▶ Dengarkan';activeAudioButton=null;});}}
  if(b.dataset.progress){const [s,a]=b.dataset.progress.split(':').map(Number);S.last={number:s,name:b.dataset.name,ayah:a};localStorage.setItem('quran-last-read',JSON.stringify(S.last));toast('Terakhir dibaca disimpan: '+b.dataset.name+' ayat '+a);render();}
  if(b.dataset.save){const [s,a]=b.dataset.save.split(':').map(Number);const i=S.bookmarks.findIndex(x=>x.surah===s&&x.ayah===a);if(i>=0)S.bookmarks.splice(i,1);else S.bookmarks.push({surah:s,ayah:a,name:b.dataset.name,text:b.dataset.ar,translation:b.dataset.tr});save();render();}
