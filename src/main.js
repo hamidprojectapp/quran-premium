@@ -1,7 +1,7 @@
 import './style.css';
 import {getSurahs,getSurah,getJuz,getSurahAudio} from './services/quran-api.js';
 const app=document.querySelector('#app');
-const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false};
+const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy'};
 let tasbih=0;
 let audioPlayer=null;
 let activeAudioButton=null;
@@ -17,7 +17,7 @@ function content(){
  if(S.page==='detail')return detail();
  if(S.page==='bookmark')return bookmarks();
  if(S.page==='ibadah')return ibadah();
- return '<div class="heading"><label>PREFERENSI</label><h1>Pengaturan</h1><p>Quran Premium versi 1.0.0 · Developer Abdul Hamid</p></div><div class="panel"><b>Tampilan premium</b><p>Mode gelap hijau emerald dan emas.</p><b>Data Al-Qur’an</b><p>Diambil secara online dari AlQuran Cloud API.</p></div>';
+ const reciters=[['ar.alafasy','Mishary Rashid Alafasy'],['ar.abdurrahmaansudais','Abdurrahman As-Sudais'],['ar.husary','Mahmoud Khalil Al-Husary'],['ar.husarymujawwad','Mahmoud Khalil Al-Husary (Mujawwad)'],['ar.minshawi','Muhammad Siddiq Al-Minshawi'],['ar.muhammadayyoub','Muhammad Ayyub'],['ar.muhammadjibreel','Muhammad Jibreel'],['ar.mahermuaiqly','Maher Al-Muaiqly'],['ar.shaatree','Abu Bakr Ash-Shaatree']];return '<div class="heading"><label>PREFERENSI</label><h1>Pengaturan</h1><p>Quran Premium versi 1.0.0 · Developer Abdul Hamid</p></div><div class="panel"><b>Qari murottal</b><p>Pilih suara pelantun Al-Qur’an untuk pemutaran ayat.</p><select id="reciter-select" class="reciter-select">'+reciters.map(r=>'<option value="'+r[0]+'" '+(S.reciter===r[0]?'selected':'')+'>'+r[1]+'</option>').join('')+'</select><small>Pilihan akan digunakan saat surah dibuka berikutnya.</small></div><div class="panel"><b>Tampilan premium</b><p>Mode gelap hijau emerald dan emas.</p><b>Data Al-Qur’an</b><p>Diambil secara online dari AlQuran Cloud API.</p></div>';
 }
 function home(){
  const last=S.last?'<button class="continue" data-open="'+S.last.number+'" data-ayah="'+(S.last.ayah||1)+'"><span>۞</span><div><b>'+esc(S.last.name)+'</b><small>Lanjutkan membaca · Ayat '+S.last.ayah+'</small></div>›</button>':'<button class="continue" data-page="quran"><span>۞</span><div><b>Mulai membaca</b><small>Pilih surah untuk memulai</small></div>›</button>';
@@ -47,7 +47,7 @@ async function load(){
 }
 async function openSurah(n,ayah=1){
  S.page='detail';S.detailType='surah';S.detailName='';S.surah=null;render();
- try{S.surah=await getSurah(n);try{S.surah.push(await getSurahAudio(n));}catch(audioError){console.warn('Audio murottal tidak tersedia:',audioError);}const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:Number(ayah)||1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
+ try{S.surah=await getSurah(n);try{S.surah.push(await getSurahAudio(n,S.reciter));}catch(audioError){console.warn('Audio murottal tidak tersedia:',audioError);}const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:Number(ayah)||1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
  catch(e){toast(e.message);S.page='quran';}
  render();window.scrollTo(0,0);
  if(S.surah){const target=document.getElementById('ayah-'+Number(n)+'-'+(Number(ayah)||1));if(target)target.scrollIntoView({behavior:'smooth',block:'center'});}
@@ -81,5 +81,5 @@ document.addEventListener('click',async e=>{
  if(b.id==='reset'){tasbih=0;document.querySelector('#count').textContent=0;}
  if(b.id==='locate'){const out=document.querySelector('#result');out.textContent='Mengambil lokasi...';try{const c=await position();const url=b.closest('.tool').querySelector('h2').textContent.includes('salat')?'https://api.aladhan.com/v1/timings?latitude='+c.latitude+'&longitude='+c.longitude+'&method=20':'https://api.aladhan.com/v1/qibla/'+c.latitude+'/'+c.longitude;const r=await fetch(url);const j=await r.json();if(j.code!==200)throw Error('Data tidak tersedia.');if(j.data.timings){const t=j.data.timings;out.innerHTML='<div class="prayer-grid">'+[['Subuh',t.Fajr],['Terbit',t.Sunrise],['Zuhur',t.Dhuhr],['Asar',t.Asr],['Magrib',t.Maghrib],['Isya',t.Isha]].map(x=>'<div><small>'+x[0]+'</small><b>'+x[1]+'</b></div>').join('')+'</div>';}else out.innerHTML='<div class="count">'+Number(j.data.direction).toFixed(1)+'°</div><p>Arah kiblat dari utara searah jarum jam.</p>';}catch(err){out.textContent=err.message;}}
 });
-document.addEventListener('input',e=>{if(e.target.id==='search'){S.search=e.target.value;const arr=S.surahs.filter(x=>(x.name+' '+x.englishName+' '+x.number).toLowerCase().includes(S.search.toLowerCase()));document.querySelector('#list').innerHTML=arr.map(card).join('')||'<p class="empty">Surah tidak ditemukan.</p>'; }});
+document.addEventListener('change',e=>{if(e.target.id==='reciter-select'){S.reciter=e.target.value;localStorage.setItem('quran-reciter',S.reciter);toast('Pilihan qari disimpan. Buka surah berikutnya untuk menggunakan suara ini.');}});\ndocument.addEventListener('input',e=>{if(e.target.id==='search'){S.search=e.target.value;const arr=S.surahs.filter(x=>(x.name+' '+x.englishName+' '+x.number).toLowerCase().includes(S.search.toLowerCase()));document.querySelector('#list').innerHTML=arr.map(card).join('')||'<p class="empty">Surah tidak ditemukan.</p>'; }});
 render();
