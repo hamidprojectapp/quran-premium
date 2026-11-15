@@ -1,5 +1,5 @@
 import './style.css';
-import {getSurahs,getSurah,getJuz,getSurahAudio} from './services/quran-api.js';
+import {getSurahs,getSurah,getJuz,getSurahAudio,searchAyahs} from './services/quran-api.js';
 const app=document.querySelector('#app');
 const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',searchAyahQuery:'',searchResults:[],searchLoading:false,bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy'};
 let tasbih=0;
