@@ -1,7 +1,7 @@
 import './style.css';
 import {getSurahs,getSurah,getJuz,getSurahAudio} from './services/quran-api.js';
 const app=document.querySelector('#app');
-const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy'};
+const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',searchAyahQuery:'',searchResults:[],searchLoading:false,bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy'};
 let tasbih=0;
 let audioPlayer=null;
 let activeAudioButton=null;
@@ -25,8 +25,9 @@ function home(){
 }
 function quran(){
  const list=S.surahs.filter(x=>(x.name+' '+x.englishName+' '+x.number).toLowerCase().includes(S.search.toLowerCase()));
- return '<div class="heading"><label>MUSHAF DIGITAL</label><h1>Al-Qur’an</h1><p>Jelajahi 114 surah dan 30 juz.</p></div><div class="search">⌕ <input id="search" placeholder="Cari nama surah..." value="'+esc(S.search)+'"></div><div class="switch"><button class="selected" data-list="surah">Daftar Surah</button><button data-list="juz">Daftar Juz</button></div><div id="list">'+(S.loading?'<p class="empty">Memuat daftar surah...</p>':list.map(card).join('')||'<p class="empty">Surah tidak ditemukan.</p>')+'</div>';
+ return '<div class="heading"><label>MUSHAF DIGITAL</label><h1>Al-Qur’an</h1><p>Jelajahi 114 surah dan 30 juz.</p></div><div class="search">⌕ <input id="search" placeholder="Cari nama surah..." value="'+esc(S.search)+'"></div><div class="panel ayah-search-panel"><b>Cari ayat dalam terjemahan</b><p>Masukkan kata atau kalimat bahasa Indonesia.</p><div class="ayah-search-row"><input id="ayah-search" placeholder="Contoh: sesungguhnya Allah..." value="'+esc(S.searchAyahQuery)+'"><button data-search-ayah>⌕ Cari</button></div></div><div id="ayah-search-results">'+(S.searchLoading?'<p class="empty">Mencari ayat...</p>':S.searchResults.length?S.searchResults.map(searchResultCard).join(''):'')+'</div><div class="switch"><button class="selected" data-list="surah">Daftar Surah</button><button data-list="juz">Daftar Juz</button></div><div id="list">'+(S.loading?'<p class="empty">Memuat daftar surah...</p>':list.map(card).join('')||'<p class="empty">Surah tidak ditemukan.</p>')+'</div>';
 }
+function searchResultCard(m){return '<button class="search-result" data-open="'+m.surah.number+'" data-ayah="'+m.numberInSurah+'"><span><b>'+esc(m.surah.name)+' · Ayat '+m.numberInSurah+'</b><small>'+esc(m.text)+'</small></span>›</button>';}
 function card(s){return '<button class="surah" data-open="'+s.number+'"><span class="number">'+s.number+'</span><span><b>'+esc(s.name)+'</b><small>'+esc(s.englishName)+' · '+s.numberOfAyahs+' ayat</small></span><strong>'+esc(s.name)+'</strong></button>';}
 function detail(){
  if(!S.surah)return '<p class="empty">Memuat ayat...</p>';
@@ -69,6 +70,7 @@ function tool(name){
 document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.page){S.page=b.dataset.page;render();if(S.page==='quran')load();}
+ if(b.hasAttribute('data-search-ayah')){const q=document.querySelector('#ayah-search')?.value.trim();if(!q){toast('Masukkan kata yang ingin dicari.');return;}S.searchAyahQuery=q;S.searchLoading=true;S.searchResults=[];document.querySelector('#ayah-search-results').innerHTML='<p class="empty">Mencari ayat...</p>';try{const data=await searchAyahs(q);S.searchResults=data.matches||[];document.querySelector('#ayah-search-results').innerHTML=S.searchResults.length?S.searchResults.map(searchResultCard).join(''):'<p class="empty">Ayat tidak ditemukan.</p>';}catch(err){document.querySelector('#ayah-search-results').innerHTML='<p class="empty">'+esc(err.message)+'</p>';}finally{S.searchLoading=false;}}
  if(b.dataset.open)openSurah(b.dataset.open,b.dataset.ayah||1);
  if(b.dataset.list==='juz'){document.querySelector('#list').innerHTML=Array.from({length:30},(_,i)=>'<button class="surah" data-juz="'+(i+1)+'"><span class="number">'+(i+1)+'</span><span><b>Juz '+(i+1)+'</b><small>Buka bagian juz '+(i+1)+'</small></span><strong>جزء</strong></button>').join('');}
  if(b.dataset.list==='surah'){S.search='';render();}
