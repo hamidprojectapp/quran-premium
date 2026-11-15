@@ -18,7 +18,7 @@ function content(){
  return '<div class="heading"><label>PREFERENSI</label><h1>Pengaturan</h1><p>Quran Premium versi 1.0.0 · Developer Abdul Hamid</p></div><div class="panel"><b>Tampilan premium</b><p>Mode gelap hijau emerald dan emas.</p><b>Data Al-Qur’an</b><p>Diambil secara online dari AlQuran Cloud API.</p></div>';
 }
 function home(){
- const last=S.last?'<button class="continue" data-open="'+S.last.number+'"><span>۞</span><div><b>'+esc(S.last.name)+'</b><small>Lanjutkan membaca · Ayat '+S.last.ayah+'</small></div>›</button>':'<button class="continue" data-page="quran"><span>۞</span><div><b>Mulai membaca</b><small>Pilih surah untuk memulai</small></div>›</button>';
+ const last=S.last?'<button class="continue" data-open="'+S.last.number+'" data-ayah="'+(S.last.ayah||1)+'"><span>۞</span><div><b>'+esc(S.last.name)+'</b><small>Lanjutkan membaca · Ayat '+S.last.ayah+'</small></div>›</button>':'<button class="continue" data-page="quran"><span>۞</span><div><b>Mulai membaca</b><small>Pilih surah untuk memulai</small></div>›</button>';
  return '<section class="hero"><label>ASSALAMUALAIKUM</label><h1>Temukan ketenangan<br>di setiap <i>ayat-Nya.</i></h1><p>Luangkan waktu sejenak untuk membaca Al-Qur’an hari ini.</p><div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div></section><section class="panel verse"><label>AYAT PILIHAN</label><div class="arabic">فَإِنَّ مَعَ الْعُسْرِ يُسْرًا</div><p>“Maka sesungguhnya bersama kesulitan ada kemudahan.”</p><small>QS. Al-Insyirah: 5</small></section><div class="heading"><label>LANJUTKAN PERJALANAN</label><h2>Terakhir dibaca</h2></div>'+last+'<div class="heading"><label>JELAJAHI</label><h2>Menu utama</h2></div><div class="tiles"><button data-page="quran"><b>۞</b>Mushaf<small>114 Surah</small></button><button data-page="bookmark"><b>♡</b>Bookmark<small>Ayat tersimpan</small></button><button data-page="ibadah"><b>☾</b>Ruang ibadah<small>Teman harian</small></button><button data-page="ibadah" data-tool="tasbih"><b>◉</b>Tasbih<small>Dzikir harian</small></button></div>';
 }
 function quran(){
@@ -30,10 +30,10 @@ function detail(){
  if(!S.surah)return '<p class="empty">Memuat ayat...</p>';
  const a=S.surah[0],t=S.surah[1];
  const isJuz=S.detailType==='juz';
- return '<button class="back" data-page="quran">‹ Kembali ke daftar</button><section class="surah-hero"><label>'+(isJuz?'AL-QUR’AN · JUZ':'SURAH '+a.number)+'</label><h1>'+esc(S.detailName||a.name)+'</h1><p>'+a.numberOfAyahs+' Ayat</p></section><div class="arabic bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'+a.ayahs.map((v,i)=>{const surahNumber=v.surah?.number||a.number;const surahName=v.surah?.name||a.name;const saved=S.bookmarks.some(b=>b.surah===surahNumber&&b.ayah===v.numberInSurah);const surahTag=isJuz&&i>0&&a.ayahs[i-1].surah?.number!==surahNumber?'<small class="ayah-surah">'+esc(surahName)+'</small>':'';return '<article class="ayah">'+surahTag+'<div class="ayah-top"><span class="number">'+v.numberInSurah+'</span><button class="heart '+(saved?'saved':'')+'" data-save="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'" data-ar="'+esc(v.text)+'" data-tr="'+esc(t.ayahs[i]?.text||'')+'">'+(saved?'♥':'♡')+'</button></div><div class="arabic">'+v.text+'</div><p>'+esc(t.ayahs[i]?.text||'')+'</p></article>';}).join('');
+ return '<button class="back" data-page="quran">‹ Kembali ke daftar</button><section class="surah-hero"><label>'+(isJuz?'AL-QUR’AN · JUZ':'SURAH '+a.number)+'</label><h1>'+esc(S.detailName||a.name)+'</h1><p>'+a.numberOfAyahs+' Ayat</p></section><div class="arabic bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'+a.ayahs.map((v,i)=>{const surahNumber=v.surah?.number||a.number;const surahName=v.surah?.name||a.name;const saved=S.bookmarks.some(b=>b.surah===surahNumber&&b.ayah===v.numberInSurah);const surahTag=isJuz&&i>0&&a.ayahs[i-1].surah?.number!==surahNumber?'<small class="ayah-surah">'+esc(surahName)+'</small>':'';return '<article class="ayah" id="ayah-'+surahNumber+'-'+v.numberInSurah+'">'+surahTag+'<div class="ayah-top"><span class="number">'+v.numberInSurah+'</span><div class="ayah-actions"><button class="read-mark" data-progress="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'">Tandai dibaca</button><button class="heart '+(saved?'saved':'')+'" data-save="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'" data-ar="'+esc(v.text)+'" data-tr="'+esc(t.ayahs[i]?.text||'')+'">'+(saved?'♥':'♡')+'</button></div></div><div class="arabic">'+v.text+'</div><p>'+esc(t.ayahs[i]?.text||'')+'</p></article>';}).join('');
 }
 function bookmarks(){
- return '<div class="heading"><label>KOLEKSI PRIBADI</label><h1>Ayat tersimpan</h1><p>Ayat pilihan yang ingin dibaca kembali.</p></div>'+(S.bookmarks.length?S.bookmarks.map(b=>'<button class="saved" data-open="'+b.surah+'"><b>♥</b><span><strong>'+esc(b.name)+' · Ayat '+b.ayah+'</strong><small>'+esc(b.translation)+'</small></span>›</button>').join(''):'<div class="panel empty">♡<br><b>Belum ada ayat tersimpan</b><p>Tekan ikon hati pada ayat untuk menyimpannya.</p></div>');
+ return '<div class="heading"><label>KOLEKSI PRIBADI</label><h1>Ayat tersimpan</h1><p>Ayat pilihan yang ingin dibaca kembali.</p></div>'+(S.bookmarks.length?S.bookmarks.map(b=>'<button class="saved" data-open="'+b.surah+'" data-ayah="'+b.ayah+'"><b>♥</b><span><strong>'+esc(b.name)+' · Ayat '+b.ayah+'</strong><small>'+esc(b.translation)+'</small></span>›</button>').join(''):'<div class="panel empty">♡<br><b>Belum ada ayat tersimpan</b><p>Tekan ikon hati pada ayat untuk menyimpannya.</p></div>');
 }
 function ibadah(){
  return '<div class="heading"><label>TEMAN IBADAH</label><h1>Ruang ibadah</h1><p>Lengkapi rutinitas ibadah harianmu.</p></div><div class="feature-list"><button data-tool="prayer">☼ <span><b>Jadwal salat</b><small>Waktu salat berdasarkan lokasi</small></span>›</button><button data-tool="qibla">⌖ <span><b>Arah kiblat</b><small>Hitung arah Ka’bah</small></span>›</button><button data-tool="tasbih">◉ <span><b>Tasbih digital</b><small>Hitung dzikir harian</small></span>›</button><button data-tool="duas">☾ <span><b>Doa harian</b><small>Doa pilihan</small></span>›</button><button data-tool="asma">✧ <span><b>Asmaul Husna</b><small>Nama-nama Allah</small></span>›</button></div><div id="tool"></div>';
@@ -43,11 +43,12 @@ async function load(){
  try{S.surahs=await getSurahs();}catch(e){toast(e.message);}
  S.loading=false;render();
 }
-async function openSurah(n){
+async function openSurah(n,ayah=1){
  S.page='detail';S.detailType='surah';S.detailName='';S.surah=null;render();
- try{S.surah=await getSurah(n);const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
+ try{S.surah=await getSurah(n);const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:Number(ayah)||1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
  catch(e){toast(e.message);S.page='quran';}
  render();window.scrollTo(0,0);
+ if(S.surah){const target=document.getElementById('ayah-'+Number(n)+'-'+(Number(ayah)||1));if(target)target.scrollIntoView({behavior:'smooth',block:'center'});}
 }
 function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),3000);}
 async function position(){return new Promise((ok,no)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>ok(p.coords),()=>no(Error('Akses lokasi ditolak atau tidak tersedia.')),{enableHighAccuracy:true,timeout:12000}):no(Error('Lokasi tidak didukung.')));}
@@ -61,10 +62,11 @@ function tool(name){
 document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.page){S.page=b.dataset.page;render();if(S.page==='quran')load();}
- if(b.dataset.open)openSurah(b.dataset.open);
+ if(b.dataset.open)openSurah(b.dataset.open,b.dataset.ayah||1);
  if(b.dataset.list==='juz'){document.querySelector('#list').innerHTML=Array.from({length:30},(_,i)=>'<button class="surah" data-juz="'+(i+1)+'"><span class="number">'+(i+1)+'</span><span><b>Juz '+(i+1)+'</b><small>Buka bagian juz '+(i+1)+'</small></span><strong>جزء</strong></button>').join('');}
  if(b.dataset.list==='surah'){S.search='';render();}
  if(b.dataset.tool)tool(b.dataset.tool);
+ if(b.dataset.progress){const [s,a]=b.dataset.progress.split(':').map(Number);S.last={number:s,name:b.dataset.name,ayah:a};localStorage.setItem('quran-last-read',JSON.stringify(S.last));toast('Terakhir dibaca disimpan: '+b.dataset.name+' ayat '+a);render();}
  if(b.dataset.save){const [s,a]=b.dataset.save.split(':').map(Number);const i=S.bookmarks.findIndex(x=>x.surah===s&&x.ayah===a);if(i>=0)S.bookmarks.splice(i,1);else S.bookmarks.push({surah:s,ayah:a,name:b.dataset.name,text:b.dataset.ar,translation:b.dataset.tr});save();render();}
  if(b.dataset.juz){S.page='detail';S.detailType='juz';S.detailName='Juz '+b.dataset.juz;S.surah=null;render();try{const pair=await getJuz(b.dataset.juz);const ar=pair[0],tr=pair[1];S.surah=[{number:ar.ayahs[0].surah.number,name:S.detailName,englishName:S.detailName,numberOfAyahs:ar.ayahs.length,ayahs:ar.ayahs.map(x=>({...x,numberInSurah:x.numberInSurah}))},{ayahs:tr.ayahs.map(x=>({text:x.text}))}];}catch(err){toast(err.message);S.page='quran';}render();}
  if(b.id==='tap'){tasbih++;document.querySelector('#count').textContent=tasbih;}
