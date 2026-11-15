@@ -1,7 +1,7 @@
 import './style.css';
 import {getSurahs,getSurah,getJuz} from './services/quran-api.js';
 const app=document.querySelector('#app');
-const S={page:'home',surahs:[],surah:null,search:'',bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false};
+const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false};
 let tasbih=0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const save=()=>localStorage.setItem('quran-bookmarks',JSON.stringify(S.bookmarks));
@@ -29,7 +29,8 @@ function card(s){return '<button class="surah" data-open="'+s.number+'"><span cl
 function detail(){
  if(!S.surah)return '<p class="empty">Memuat ayat...</p>';
  const a=S.surah[0],t=S.surah[1];
- return '<button class="back" data-page="quran">‹ Kembali ke daftar</button><section class="surah-hero"><label>SURAH '+a.number+'</label><h1>'+esc(a.name)+'</h1><p>'+esc(a.englishName)+' · '+a.numberOfAyahs+' Ayat</p></section><div class="arabic bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'+a.ayahs.map((v,i)=>{const saved=S.bookmarks.some(b=>b.surah===a.number&&b.ayah===v.numberInSurah);return '<article class="ayah"><div class="ayah-top"><span class="number">'+v.numberInSurah+'</span><button class="heart '+(saved?'saved':'')+'" data-save="'+a.number+':'+v.numberInSurah+'" data-name="'+esc(a.name)+'" data-ar="'+esc(v.text)+'" data-tr="'+esc(t.ayahs[i]?.text||'')+'">'+(saved?'♥':'♡')+'</button></div><div class="arabic">'+v.text+'</div><p>'+esc(t.ayahs[i]?.text||'')+'</p></article>';}).join('');
+ const isJuz=S.detailType==='juz';
+ return '<button class="back" data-page="quran">‹ Kembali ke daftar</button><section class="surah-hero"><label>'+(isJuz?'AL-QUR’AN · JUZ':'SURAH '+a.number)+'</label><h1>'+esc(S.detailName||a.name)+'</h1><p>'+a.numberOfAyahs+' Ayat</p></section><div class="arabic bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'+a.ayahs.map((v,i)=>{const surahNumber=v.surah?.number||a.number;const surahName=v.surah?.name||a.name;const saved=S.bookmarks.some(b=>b.surah===surahNumber&&b.ayah===v.numberInSurah);const surahTag=isJuz&&i>0&&a.ayahs[i-1].surah?.number!==surahNumber?'<small class="ayah-surah">'+esc(surahName)+'</small>':'';return '<article class="ayah">'+surahTag+'<div class="ayah-top"><span class="number">'+v.numberInSurah+'</span><button class="heart '+(saved?'saved':'')+'" data-save="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'" data-ar="'+esc(v.text)+'" data-tr="'+esc(t.ayahs[i]?.text||'')+'">'+(saved?'♥':'♡')+'</button></div><div class="arabic">'+v.text+'</div><p>'+esc(t.ayahs[i]?.text||'')+'</p></article>';}).join('');
 }
 function bookmarks(){
  return '<div class="heading"><label>KOLEKSI PRIBADI</label><h1>Ayat tersimpan</h1><p>Ayat pilihan yang ingin dibaca kembali.</p></div>'+(S.bookmarks.length?S.bookmarks.map(b=>'<button class="saved" data-open="'+b.surah+'"><b>♥</b><span><strong>'+esc(b.name)+' · Ayat '+b.ayah+'</strong><small>'+esc(b.translation)+'</small></span>›</button>').join(''):'<div class="panel empty">♡<br><b>Belum ada ayat tersimpan</b><p>Tekan ikon hati pada ayat untuk menyimpannya.</p></div>');
@@ -43,7 +44,7 @@ async function load(){
  S.loading=false;render();
 }
 async function openSurah(n){
- S.page='detail';S.surah=null;render();
+ S.page='detail';S.detailType='surah';S.detailName='';S.surah=null;render();
  try{S.surah=await getSurah(n);const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
  catch(e){toast(e.message);S.page='quran';}
  render();window.scrollTo(0,0);
@@ -65,7 +66,7 @@ document.addEventListener('click',async e=>{
  if(b.dataset.list==='surah'){S.search='';render();}
  if(b.dataset.tool)tool(b.dataset.tool);
  if(b.dataset.save){const [s,a]=b.dataset.save.split(':').map(Number);const i=S.bookmarks.findIndex(x=>x.surah===s&&x.ayah===a);if(i>=0)S.bookmarks.splice(i,1);else S.bookmarks.push({surah:s,ayah:a,name:b.dataset.name,text:b.dataset.ar,translation:b.dataset.tr});save();render();}
- if(b.dataset.juz){S.page='detail';S.surah=null;render();try{const pair=await getJuz(b.dataset.juz);const ar=pair[0],tr=pair[1];S.surah=[{number:ar.ayahs[0].surah.number,name:'Juz '+b.dataset.juz,englishName:'Juz '+b.dataset.juz,numberOfAyahs:ar.ayahs.length,ayahs:ar.ayahs.map(x=>({...x,numberInSurah:x.numberInSurah}))},{ayahs:tr.ayahs.map(x=>({text:x.text}))}];}catch(err){toast(err.message);S.page='quran';}render();}
+ if(b.dataset.juz){S.page='detail';S.detailType='juz';S.detailName='Juz '+b.dataset.juz;S.surah=null;render();try{const pair=await getJuz(b.dataset.juz);const ar=pair[0],tr=pair[1];S.surah=[{number:ar.ayahs[0].surah.number,name:S.detailName,englishName:S.detailName,numberOfAyahs:ar.ayahs.length,ayahs:ar.ayahs.map(x=>({...x,numberInSurah:x.numberInSurah}))},{ayahs:tr.ayahs.map(x=>({text:x.text}))}];}catch(err){toast(err.message);S.page='quran';}render();}
  if(b.id==='tap'){tasbih++;document.querySelector('#count').textContent=tasbih;}
  if(b.id==='reset'){tasbih=0;document.querySelector('#count').textContent=0;}
  if(b.id==='locate'){const out=document.querySelector('#result');out.textContent='Mengambil lokasi...';try{const c=await position();const url=b.closest('.tool').querySelector('h2').textContent.includes('salat')?'https://api.aladhan.com/v1/timings?latitude='+c.latitude+'&longitude='+c.longitude+'&method=20':'https://api.aladhan.com/v1/qibla/'+c.latitude+'/'+c.longitude;const r=await fetch(url);const j=await r.json();if(j.code!==200)throw Error('Data tidak tersedia.');if(j.data.timings){const t=j.data.timings;out.innerHTML='<div class="prayer-grid">'+[['Subuh',t.Fajr],['Terbit',t.Sunrise],['Zuhur',t.Dhuhr],['Asar',t.Asr],['Magrib',t.Maghrib],['Isya',t.Isha]].map(x=>'<div><small>'+x[0]+'</small><b>'+x[1]+'</b></div>').join('')+'</div>';}else out.innerHTML='<div class="count">'+Number(j.data.direction).toFixed(1)+'°</div><p>Arah kiblat dari utara searah jarum jam.</p>';}catch(err){out.textContent=err.message;}}
