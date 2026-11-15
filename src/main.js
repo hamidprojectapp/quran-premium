@@ -1,7 +1,7 @@
 import './style.css';
-import {getSurahs,getSurah,getJuz,getSurahAudio,searchAyahs} from './services/quran-api.js';
+import {getSurahs,getSurah,getJuz,getSurahAudio,searchAyahs,getSurahWordTranslations} from './services/quran-api.js';
 const app=document.querySelector('#app');
-const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',searchAyahQuery:'',searchResults:[],searchLoading:false,bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy',arabicSize:localStorage.getItem('quran-arabic-size')||'30',translationSize:localStorage.getItem('quran-translation-size')||'13',lineSpacing:localStorage.getItem('quran-line-spacing')||'2.0'};
+const S={page:'home',surahs:[],surah:null,detailType:'surah',detailName:'',search:'',searchAyahQuery:'',searchResults:[],searchLoading:false,bookmarks:JSON.parse(localStorage.getItem('quran-bookmarks')||'[]'),last:JSON.parse(localStorage.getItem('quran-last-read')||'null'),loading:false,reciter:localStorage.getItem('quran-reciter')||'ar.alafasy',arabicSize:localStorage.getItem('quran-arabic-size')||'30',translationSize:localStorage.getItem('quran-translation-size')||'13',lineSpacing:localStorage.getItem('quran-line-spacing')||'2.0',wordTranslations:{},showWordTranslation:false};
 let tasbih=0;
 let audioPlayer=null;
 let activeAudioButton=null;
@@ -35,6 +35,11 @@ function detail(){
  const isJuz=S.detailType==='juz';
  return '<button class="back" data-page="quran">‹ Kembali ke daftar</button><section class="surah-hero"><label>'+(isJuz?'AL-QUR’AN · JUZ':'SURAH '+a.number)+'</label><h1>'+esc(S.detailName||a.name)+'</h1><p>'+a.numberOfAyahs+' Ayat</p></section><div class="arabic bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'+a.ayahs.map((v,i)=>{const surahNumber=v.surah?.number||a.number;const surahName=v.surah?.name||a.name;const saved=S.bookmarks.some(b=>b.surah===surahNumber&&b.ayah===v.numberInSurah);const surahTag=isJuz&&i>0&&a.ayahs[i-1].surah?.number!==surahNumber?'<small class="ayah-surah">'+esc(surahName)+'</small>':'';return '<article class="ayah" id="ayah-'+surahNumber+'-'+v.numberInSurah+'">'+surahTag+'<div class="ayah-top"><span class="number">'+v.numberInSurah+'</span><div class="ayah-actions">'+(audio?.ayahs?.[i]?.audio?'<button class="audio-play" data-audio="'+esc(audio.ayahs[i].audio)+'">▶ Dengarkan</button>':'')+'<button class="read-mark" data-progress="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'">Tandai dibaca</button><button class="heart '+(saved?'saved':'')+'" data-save="'+surahNumber+':'+v.numberInSurah+'" data-name="'+esc(surahName)+'" data-ar="'+esc(v.text)+'" data-tr="'+esc(t.ayahs[i]?.text||'')+'">'+(saved?'♥':'♡')+'</button></div></div><div class="arabic">'+v.text+'</div><p>'+esc(t.ayahs[i]?.text||'')+'</p></article>';}).join('');
 }
+function wordTranslationMarkup(surahNumber,ayahNumber,fallback){
+ const words=S.wordTranslations[surahNumber+':'+ayahNumber];
+ if(!words?.length)return fallback;
+ return '<div class="word-by-word">'+words.filter(w=>w.char_type_name==='word').map(w=>'<span class="word-item"><span class="word-arabic">'+esc(w.text_uthmani||'')+'</span><small>'+esc(w.translation?.text||'')+'</small></span>').join('')+'</div>';
+}
 function bookmarks(){
  return '<div class="heading"><label>KOLEKSI PRIBADI</label><h1>Ayat tersimpan</h1><p>Ayat pilihan yang ingin dibaca kembali.</p></div>'+(S.bookmarks.length?S.bookmarks.map(b=>'<button class="saved" data-open="'+b.surah+'" data-ayah="'+b.ayah+'"><b>♥</b><span><strong>'+esc(b.name)+' · Ayat '+b.ayah+'</strong><small>'+esc(b.translation)+'</small></span>›</button>').join(''):'<div class="panel empty">♡<br><b>Belum ada ayat tersimpan</b><p>Tekan ikon hati pada ayat untuk menyimpannya.</p></div>');
 }
@@ -48,7 +53,7 @@ async function load(){
 }
 async function openSurah(n,ayah=1){
  S.page='detail';S.detailType='surah';S.detailName='';S.surah=null;render();
- try{S.surah=await getSurah(n);try{S.surah.push(await getSurahAudio(n,S.reciter));}catch(audioError){console.warn('Audio murottal tidak tersedia:',audioError);}const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:Number(ayah)||1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
+ try{S.surah=await getSurah(n);S.wordTranslations={};S.showWordTranslation=false;try{S.wordTranslations=await getSurahWordTranslations(n);}catch(wordError){console.warn('Terjemahan per kata tidak tersedia:',wordError);}try{S.surah.push(await getSurahAudio(n,S.reciter));}catch(audioError){console.warn('Audio murottal tidak tersedia:',audioError);}const info=S.surahs.find(x=>x.number===Number(n));S.last={number:Number(n),name:info?.name||S.surah[0].name,ayah:Number(ayah)||1};localStorage.setItem('quran-last-read',JSON.stringify(S.last));}
  catch(e){toast(e.message);S.page='quran';}
  render();window.scrollTo(0,0);
  if(S.surah){const target=document.getElementById('ayah-'+Number(n)+'-'+(Number(ayah)||1));if(target)target.scrollIntoView({behavior:'smooth',block:'center'});}
@@ -71,6 +76,7 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.page){S.page=b.dataset.page;render();if(S.page==='quran')load();}
  if(b.hasAttribute('data-search-ayah')){const q=document.querySelector('#ayah-search')?.value.trim();if(!q){toast('Masukkan kata yang ingin dicari.');return;}S.searchAyahQuery=q;S.searchLoading=true;S.searchResults=[];document.querySelector('#ayah-search-results').innerHTML='<p class="empty">Mencari ayat...</p>';try{const data=await searchAyahs(q);S.searchResults=data.matches||[];document.querySelector('#ayah-search-results').innerHTML=S.searchResults.length?S.searchResults.map(searchResultCard).join(''):'<p class="empty">Ayat tidak ditemukan.</p>';}catch(err){document.querySelector('#ayah-search-results').innerHTML='<p class="empty">'+esc(err.message)+'</p>';}finally{S.searchLoading=false;}}
+ if(b.hasAttribute('data-toggle-words')){S.showWordTranslation=!S.showWordTranslation;render();return;}
  if(b.dataset.open)openSurah(b.dataset.open,b.dataset.ayah||1);
  if(b.dataset.list==='juz'){document.querySelector('#list').innerHTML=Array.from({length:30},(_,i)=>'<button class="surah" data-juz="'+(i+1)+'"><span class="number">'+(i+1)+'</span><span><b>Juz '+(i+1)+'</b><small>Buka bagian juz '+(i+1)+'</small></span><strong>جزء</strong></button>').join('');}
  if(b.dataset.list==='surah'){S.search='';render();}
