@@ -34,3 +34,24 @@
 .github-project-link span{font-size:12px;color:var(--muted,#9aa59f)}
 .github-project-link b{font-size:13px;color:#d6b66f;overflow-wrap:anywhere}
 .about-developer .app-credit-footer{display:block;margin-top:18px;text-align:center}
+
+
+/* Premium live Qibla compass */
+.qibla-panel{text-align:center}
+.qibla-compass{position:relative;width:min(76vw,270px);height:min(76vw,270px);margin:24px auto 18px;border-radius:50%;border:2px solid rgba(216,182,106,.65);background:radial-gradient(circle,#174638 0%,#0b2922 68%,#071e19 100%);box-shadow:0 0 0 8px rgba(216,182,106,.07),inset 0 0 28px #0008}
+.qibla-ring{position:absolute;inset:10px;border:1px solid rgba(216,182,106,.35);border-radius:50%;transition:transform .12s linear}
+.qibla-ring:before,.qibla-ring:after{content:"";position:absolute;background:rgba(216,182,106,.22)}
+.qibla-ring:before{width:1px;height:88%;left:50%;top:6%}
+.qibla-ring:after{height:1px;width:88%;left:6%;top:50%}
+.qibla-ring span{position:absolute;color:#e6d19b;font-size:12px;font-weight:800}
+.qibla-ring .north{top:5px;left:50%;transform:translateX(-50%)}
+.qibla-ring .east{right:5px;top:50%;transform:translateY(-50%)}
+.qibla-ring .south{bottom:5px;left:50%;transform:translateX(-50%)}
+.qibla-ring .west{left:5px;top:50%;transform:translateY(-50%)}
+.qibla-needle{position:absolute;z-index:2;left:50%;top:50%;width:4px;height:42%;transform:translate(-50%,-50%);transform-origin:50% 50%;transition:transform .12s linear}
+.qibla-needle:before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);border-left:13px solid transparent;border-right:13px solid transparent;border-bottom:82px solid #e3bd69;filter:drop-shadow(0 2px 4px #0008)}
+.qibla-needle:after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:45px solid #b8c9bf}
+.qibla-center{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:35px;height:35px;display:grid;place-items:center;border-radius:50%;border:2px solid #e3bd69;background:#0b2922;color:#e3bd69;font-size:19px}
+.qibla-degree{font-size:34px;font-weight:800;color:#e8cc83;font-variant-numeric:tabular-nums}
+.qibla-direction{margin:4px 0 18px;color:#c3d5ca;font-size:11px}
+.qibla-status{margin-top:13px;color:var(--muted);font-size:10px;line-height:1.7}
