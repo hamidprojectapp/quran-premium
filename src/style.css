@@ -5,3 +5,5 @@
 .asma-list{display:grid;gap:9px}.asma-item{display:flex;align-items:center;gap:13px;padding:13px;border:1px solid #d8b66a24;border-radius:15px;background:linear-gradient(120deg,#102e27,#0b2721)}.asma-item>div{flex:1;min-width:0}.asma-item .arabic{font-size:27px;margin:0 0 2px;text-align:right}.asma-item b{display:block;color:var(--gold);font-size:12px}.asma-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
 
 .audio-play{border:1px solid #d8b66a55;border-radius:20px;padding:6px 10px;background:#174236;color:var(--gold);font-size:9px;white-space:nowrap}.audio-play:active{background:#d8b66a;color:#102e27}
+
+.reciter-select{display:block;width:100%;margin:12px 0;padding:13px;border:1px solid #d8b66a66;border-radius:12px;background:#102e27;color:#f4f1e7;font-size:12px;outline:none}.panel>small{display:block;color:var(--muted);font-size:10px;line-height:1.6;margin-top:8px}
