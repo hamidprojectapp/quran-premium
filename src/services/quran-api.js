@@ -12,3 +12,5 @@ export const getJuz = async n => Promise.all([
   request('/juz/' + n + '/quran-uthmani'),
   request('/juz/' + n + '/id.indonesian')
 ]);
+
+export const getSurahAudio = n => request('/surah/' + n + '/ar.alafasy');
