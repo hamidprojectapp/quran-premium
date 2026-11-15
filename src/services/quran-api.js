@@ -16,3 +16,11 @@ export const getJuz = async n => Promise.all([
 export const getSurahAudio = (n, edition = 'ar.alafasy') => request('/surah/' + n + '/' + edition);
 
 export const searchAyahs = keyword => request('/search/' + encodeURIComponent(keyword) + '/all/id.indonesian');
+
+export const getSurahWordTranslations = async n => {
+  const url = 'https://api.quran.com/api/v4/verses/by_chapter/' + n + '?language=id&words=true&word_fields=text_uthmani,translation&translations=33&per_page=300';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Terjemahan per kata belum dapat dimuat.');
+  const json = await response.json();
+  return Object.fromEntries((json.verses || []).map(v => [v.verse_key, v.words || []]));
+};
