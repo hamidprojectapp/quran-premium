@@ -65,8 +65,26 @@ function renderPrayerSchedule(){
  out.innerHTML=items.map(x=>'<div><small>'+x[0]+'</small><b>'+esc(String(x[1]).slice(0,5))+'</b></div>').join('');
  const date=document.querySelector('#prayer-date');if(date)date.textContent=(prayerSchedule.date?.hijri?.weekday?.ar||'')+' · '+(prayerSchedule.date?.readable||'')+' · '+(prayerSchedule.date?.hijri?.date||'')+' H';
  updatePrayerCountdown();
+ syncPrayerReminders();
  if(prayerCountdownTimer)clearInterval(prayerCountdownTimer);
  prayerCountdownTimer=setInterval(updatePrayerCountdown,1000);
+}
+async function syncPrayerReminders(){
+ if(!prayerSchedule?.timings)return;
+ const plugin=window.Capacitor?.Plugins?.PrayerReminder;
+ if(!plugin)return;
+ const timings=prayerSchedule.timings;
+ const map={Subuh:'Fajr',Zuhur:'Dhuhr',Ashar:'Asr',Magrib:'Maghrib',Isya:'Isha'};
+ const prayers=Object.entries(map).map(([name,key])=>{
+  const parts=String(timings[key]||'').split(':');
+  const setting=prayerSettings[name]||{enabled:true,lead:'0',sound:name==='Subuh'?'fajr':'adhan'};
+  return {name,hour:Number(parts[0]),minute:Number(parts[1]),lead:Number(setting.lead||0),sound:setting.sound||'short',enabled:!!setting.enabled};
+ }).filter(x=>Number.isFinite(x.hour)&&Number.isFinite(x.minute));
+ try{
+  const result=await plugin.schedule({prayers});
+  const note=document.querySelector('.reminder-footnote');
+  if(note)note.textContent=result.exactAlarmAllowed?'Jadwal pengingat telah dikirim ke Android. Pastikan izin notifikasi diaktifkan.':'Jadwal disimpan. Aktifkan izin Alarm & pengingat di pengaturan Android agar waktunya lebih akurat.';
+ }catch(error){console.warn('Pengingat sholat belum dapat dijadwalkan:',error);}
 }
 function updatePrayerCountdown(){
  if(!prayerSchedule)return;
@@ -159,6 +177,6 @@ function applyReadingSettings(){document.documentElement.style.setProperty('--ar
 applyReadingSettings();
 applyTheme();
 document.addEventListener('change',e=>{if(e.target.id==='reciter-select'){S.reciter=e.target.value;localStorage.setItem('quran-reciter',S.reciter);toast('Pilihan qari disimpan. Buka surah berikutnya untuk menggunakan suara ini.');}if(e.target.id==='arabic-size'){S.arabicSize=e.target.value;localStorage.setItem('quran-arabic-size',S.arabicSize);applyReadingSettings();toast('Ukuran tulisan Arab disimpan.');}if(e.target.id==='translation-size'){S.translationSize=e.target.value;localStorage.setItem('quran-translation-size',S.translationSize);applyReadingSettings();toast('Ukuran terjemahan disimpan.');}if(e.target.id==='line-spacing'){S.lineSpacing=e.target.value;localStorage.setItem('quran-line-spacing',S.lineSpacing);applyReadingSettings();toast('Jarak antarbaris disimpan.');}});
-document.addEventListener('change',e=>{const n=e.target.dataset.prayerEnabled||e.target.dataset.prayerLead||e.target.dataset.prayerSound;if(n){if(!prayerSettings[n])prayerSettings[n]={enabled:true,lead:'0',sound:n==='Subuh'?'fajr':'adhan'};if(e.target.dataset.prayerEnabled)prayerSettings[n].enabled=e.target.checked;if(e.target.dataset.prayerLead)prayerSettings[n].lead=e.target.value;if(e.target.dataset.prayerSound)prayerSettings[n].sound=e.target.value;localStorage.setItem('quran-prayer-settings',JSON.stringify(prayerSettings));toast('Pengaturan pengingat '+n+' disimpan.');}});
+document.addEventListener('change',e=>{const n=e.target.dataset.prayerEnabled||e.target.dataset.prayerLead||e.target.dataset.prayerSound;if(n){if(!prayerSettings[n])prayerSettings[n]={enabled:true,lead:'0',sound:n==='Subuh'?'fajr':'adhan'};if(e.target.dataset.prayerEnabled)prayerSettings[n].enabled=e.target.checked;if(e.target.dataset.prayerLead)prayerSettings[n].lead=e.target.value;if(e.target.dataset.prayerSound)prayerSettings[n].sound=e.target.value;localStorage.setItem('quran-prayer-settings',JSON.stringify(prayerSettings));syncPrayerReminders();toast('Pengaturan pengingat '+n+' disimpan.');}});
 document.addEventListener('input',e=>{if(e.target.id==='dua-search'){const box=document.querySelector('#tool');if(box){const query=e.target.value;const filtered=dailyDuas.filter(d=>(d.title+' '+d.meaning+' '+d.source).toLowerCase().includes(query.toLowerCase()));const count=box.querySelector('.dua-count');if(count)count.textContent=filtered.length+' dari '+dailyDuas.length+' doa';const list=box.querySelector('.dua-list');if(list)list.innerHTML=filtered.map(d=>'<article class=\"dua-card\"><div class=\"dua-card-top\"><span class=\"number\">'+(dailyDuas.indexOf(d)+1)+'</span><b>'+esc(d.title)+'</b></div><div class=\"arabic dua-arabic\">'+d.arabic+'</div><p class=\"dua-latin\">'+esc(d.latin)+'</p><p class=\"dua-meaning\">'+esc(d.meaning)+'</p><small class=\"dua-source\">Sumber: '+esc(d.source)+'</small></article>').join('')||'<p class=\"empty\">Doa tidak ditemukan.</p>';}}if(e.target.id==='search'){S.search=e.target.value;const arr=S.surahs.filter(x=>(x.name+' '+x.englishName+' '+x.number).toLowerCase().includes(S.search.toLowerCase()));document.querySelector('#list').innerHTML=arr.map(card).join('')||'<p class="empty">Surah tidak ditemukan.</p>'; }});
 render();
