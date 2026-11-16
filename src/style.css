@@ -185,3 +185,29 @@
 .reminder-controls .prayer-native-picker{min-width:0;margin:0;padding:12px 10px;border-radius:12px;font-size:11px;line-height:1.35}
 .reminder-controls .prayer-native-picker .picker-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 :root[data-theme="light"] .reminder-controls .prayer-native-picker{background:#fffefa;color:#183b30;border-color:#d9dfd7}
+
+
+/* Reorganized Ruang Ibadah hub and dedicated feature pages */
+.ibadah-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.ibadah-grid>button{min-height:112px;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr;align-items:center;gap:7px 8px;padding:16px;border:1px solid rgba(216,182,106,.25);border-radius:18px;background:linear-gradient(145deg,#123b30,#0b2922);color:inherit;text-align:left}
+.ibadah-grid>button .feature-icon{grid-column:1/-1;font-size:23px;color:var(--gold)}
+.ibadah-grid>button>span:nth-child(2){display:grid;gap:5px;min-width:0}
+.ibadah-grid>button b{font-size:13px;color:inherit}
+.ibadah-grid>button small{font-size:10px;line-height:1.5;color:var(--muted)}
+.ibadah-grid>button strong{grid-column:2;grid-row:2;color:var(--gold);font-size:22px}
+.ibadah-grid>button.feature-wide{grid-column:1/-1;min-height:76px;grid-template-columns:auto 1fr auto;grid-template-rows:auto;align-items:center}
+.ibadah-grid>button.feature-wide .feature-icon{grid-column:auto}
+.ibadah-grid>button.feature-wide strong{grid-column:auto;grid-row:auto}
+.ibadah-grid>button:active,.prayer-settings-entry:active{transform:scale(.99)}
+.ibadah-back{display:block;margin:0 0 13px}
+.prayer-settings-entry{width:100%;display:flex;align-items:center;gap:12px;margin-top:19px;padding:15px;border:1px solid rgba(216,182,106,.35);border-radius:15px;background:linear-gradient(130deg,#143e31,#0d2c24);color:inherit;text-align:left}
+.prayer-settings-entry .prayer-settings-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:rgba(216,182,106,.13);color:var(--gold);font-size:22px}
+.prayer-settings-entry>span:nth-child(2){display:grid;gap:5px;flex:1;min-width:0}
+.prayer-settings-entry b{font-size:12px}
+.prayer-settings-entry small{font-size:10px;line-height:1.5;color:var(--muted)}
+.prayer-settings-entry>strong{font-size:10px;color:var(--gold);white-space:nowrap}
+.prayer-settings-page{margin-top:0}
+.prayer-settings-page>h2{margin:7px 0}
+.prayer-settings-page>.reminder-row:first-of-type{margin-top:14px}
+:root[data-theme="light"] .ibadah-grid>button{background:linear-gradient(145deg,#fffefa,#f1f5ed);border-color:#e5dfcf;color:#183b30}
+:root[data-theme="light"] .prayer-settings-entry{background:linear-gradient(130deg,#fffefa,#edf4ed);border-color:#e2d7bd;color:#183b30}
