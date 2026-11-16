@@ -225,3 +225,5 @@
 .permission-benefit b,.permission-benefit small{display:block}.permission-benefit b{font-size:14px}.permission-benefit small{font-size:12px;opacity:.65;margin-top:3px}
 .permission-dialog .gold-button,.permission-dialog .reset{width:100%;margin-top:12px}.permission-dialog button:disabled{opacity:.6}
 :root[data-theme="light"] .permission-dialog{background:#fff;color:#17251f}
+
+.reminder-test-actions{display:grid;gap:8px;margin:14px 0 18px}.reminder-test-actions .reset{margin:0;padding:10px;border:1px solid #d8b66a35;border-radius:10px;color:var(--gold)}
