@@ -55,3 +55,23 @@
 .qibla-degree{font-size:34px;font-weight:800;color:#e8cc83;font-variant-numeric:tabular-nums}
 .qibla-direction{margin:4px 0 18px;color:#c3d5ca;font-size:11px}
 .qibla-status{margin-top:13px;color:var(--muted);font-size:10px;line-height:1.7}
+
+
+/* Live ayah tracking during recitation */
+.ayah.playing{background:linear-gradient(110deg,rgba(216,182,106,.13),rgba(20,91,73,.28));border:1px solid rgba(216,182,106,.55);border-radius:15px;padding:15px 12px;margin:10px -2px;box-shadow:0 0 0 3px rgba(216,182,106,.06)}
+.ayah.playing .number{background:#d8b66a;color:#102e27}
+.ayah.playing .audio-play{background:#d8b66a;color:#102e27;font-weight:800}
+.duas-intro>b{display:inline-block;margin-top:5px;color:var(--gold);font-size:11px}
+.dua-search{margin:14px 0 8px}
+.dua-search input{width:100%;padding:13px 14px;border:1px solid #d8b66a55;border-radius:12px;background:#102e27;color:#fff;font-size:12px;outline:none}
+.dua-search input:focus{border-color:var(--gold)}
+.dua-count{margin:10px 3px;color:var(--muted);font-size:10px}
+.dua-list{display:grid;gap:11px}
+.dua-card{padding:16px;border:1px solid rgba(216,182,106,.24);border-radius:16px;background:linear-gradient(145deg,#102e27,#0b2721)}
+.dua-card-top{display:flex;align-items:center;gap:10px}
+.dua-card-top b{font-size:12px;color:#f1e7c9}
+.dua-card-top .number{flex:0 0 34px}
+.dua-arabic{font-size:25px;line-height:2.05;margin:17px 0;text-align:right;direction:rtl}
+.dua-latin{font-size:11px;line-height:1.8;color:#e2c987;font-style:italic}
+.dua-meaning{font-size:11px;line-height:1.8;color:#c6d8ce}
+.dua-source{display:block;margin-top:9px;color:var(--gold);font-size:9px}
