@@ -133,3 +133,24 @@
 :root[data-theme="light"] .native-setting-button{background:#f8f8f2;border-color:#e2d7bd}
 :root[data-theme="light"] .native-setting-button span:last-child{color:#946b25}
 :root[data-theme="light"] .toast{background:#174b39;color:#fff}
+
+
+/* Prayer schedule - premium emerald and gold */
+.prayer-tool h2{margin:7px 0}
+.prayer-date{margin:14px 0 10px;text-align:center;color:var(--muted);font-size:10px;line-height:1.7}
+.prayer-next{display:grid;gap:7px;justify-items:center;padding:19px 12px;margin:12px 0;border:1px solid rgba(216,182,106,.38);border-radius:17px;background:linear-gradient(135deg,#174b3c,#0b2b23)}
+.prayer-next small{font-size:9px;letter-spacing:1.5px;color:#d8b66a;font-weight:800}
+.prayer-next b{font-size:16px;color:#f1e5c5}
+.prayer-next strong{font-size:31px;letter-spacing:2px;color:#e8cc83;font-variant-numeric:tabular-nums}
+.prayer-times{grid-template-columns:repeat(2,minmax(0,1fr));margin:13px 0 17px}
+.prayer-times div{min-height:67px;align-content:center;text-align:center;border:1px solid rgba(216,182,106,.2);background:rgba(255,255,255,.035)}
+.prayer-times div:last-child{grid-column:1/-1}
+.prayer-times b{font-size:17px;color:var(--gold);font-variant-numeric:tabular-nums}
+.prayer-times small{font-size:10px;color:var(--muted)}
+.prayer-times .prayer-empty{grid-column:1/-1;display:block;text-align:center;color:var(--muted);font-size:11px;padding:18px}
+.prayer-location{display:block;text-align:center;color:var(--muted);font-size:10px;margin-top:12px}
+.prayer-note{font-size:10px!important;color:var(--muted)!important;text-align:center;margin-top:14px}
+.prayer-result{font-size:10px;color:var(--muted);text-align:center;margin-top:10px}
+:root[data-theme="light"] .prayer-next{background:linear-gradient(135deg,#e6f0e5,#f8f1df);border-color:#d8c99f}
+:root[data-theme="light"] .prayer-next b{color:#174b39}
+:root[data-theme="light"] .prayer-times div{background:#fffefa;border-color:#e5dfcf}
