@@ -227,3 +227,5 @@
 :root[data-theme="light"] .permission-dialog{background:#fff;color:#17251f}
 
 .reminder-test-actions{display:grid;gap:8px;margin:14px 0 18px}.reminder-test-actions .reset{margin:0;padding:10px;border:1px solid #d8b66a35;border-radius:10px;color:var(--gold)}
+
+.surah-meaning{display:block;margin-top:4px;color:#d8b66a!important;font-size:10px!important}
