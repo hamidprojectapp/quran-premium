@@ -177,8 +177,9 @@ async function finishPrayerOnboarding(){
 async function showExactAlarmStep(){
  if(!prayerOnboardingLayer)return;
  const plugin=window.Capacitor?.Plugins?.PrayerReminder;
+ if(!plugin){await finishPrayerOnboarding();return;}
  let allowed=false;
- try{const result=await plugin?.checkExactAlarmPermission();allowed=!!result?.allowed;}catch(error){console.warn('Pemeriksaan izin alarm:',error);}
+ try{const result=await plugin.checkExactAlarmPermission();allowed=!!result?.allowed;}catch(error){console.warn('Pemeriksaan izin alarm:',error);}
  if(allowed){await finishPrayerOnboarding();return;}
  prayerOnboardingLayer.querySelector('.permission-dialog').innerHTML='<div class="permission-symbol">◷</div><label>PENGATURAN PENTING</label><h2>Aktifkan Alarm &amp; pengingat</h2><p>Agar azan dan pengingat sholat dapat dijadwalkan tepat waktu, Android memerlukan izin khusus ini. Izin ini berbeda dari izin notifikasi.</p><div class="permission-benefit"><span>◷</span><div><b>Alarm &amp; pengingat</b><small>Izinkan Quran Premium menjadwalkan alarm sholat</small></div></div><button class="gold-button" data-exact-alarm-open>Aktifkan Sekarang</button><button class="reset" data-permission-later>Nanti saja</button>';
  prayerOnboardingLayer.querySelector('[data-exact-alarm-open]').addEventListener('click',async()=>{try{prayerOnboardingWaitingForExactAlarm=true;await plugin.openExactAlarmSettings();}catch(error){prayerOnboardingWaitingForExactAlarm=false;toast('Pengaturan Alarm & pengingat tidak dapat dibuka.');console.error(error);}});
