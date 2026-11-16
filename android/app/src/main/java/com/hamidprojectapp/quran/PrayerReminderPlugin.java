@@ -78,6 +78,20 @@ public class PrayerReminderPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void testAdhan(PluginCall call) {
+        String sound = call.getString("sound", "adhan");
+        Intent intent = new Intent(getContext(), AdhanPlaybackService.class);
+        intent.setAction(AdhanPlaybackService.ACTION_PLAY);
+        intent.putExtra(AdhanPlaybackService.EXTRA_SOUND, sound);
+        intent.putExtra(AdhanPlaybackService.EXTRA_PRAYER, "Tes suara");
+        try {
+            if (Build.VERSION.SDK_INT >= 26) getContext().startForegroundService(intent);
+            else getContext().startService(intent);
+            call.resolve();
+        } catch (Exception error) { call.reject("Tidak dapat memulai tes suara adzan.", error); }
+    }
+
+    @PluginMethod
     public void stopAdhan(PluginCall call) {
         Intent intent = new Intent(getContext(), AdhanPlaybackService.class);
         intent.setAction(AdhanPlaybackService.ACTION_STOP);
