@@ -211,3 +211,17 @@
 .prayer-settings-page>.reminder-row:first-of-type{margin-top:14px}
 :root[data-theme="light"] .ibadah-grid>button{background:linear-gradient(145deg,#fffefa,#f1f5ed);border-color:#e5dfcf;color:#183b30}
 :root[data-theme="light"] .prayer-settings-entry{background:linear-gradient(130deg,#fffefa,#edf4ed);border-color:#e2d7bd;color:#183b30}
+
+
+/* Izin awal Android */
+.permission-onboarding{position:fixed;inset:0;z-index:9999;background:rgba(4,18,14,.72);display:flex;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(8px)}
+.permission-dialog{width:min(100%,420px);background:var(--panel,#10251f);color:var(--text,#f5f5f0);border:1px solid rgba(212,175,90,.28);border-radius:28px;padding:26px 22px;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.permission-symbol{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:rgba(212,175,90,.14);color:#d8b56b;font-size:30px;margin-bottom:16px}
+.permission-dialog>label{font-size:11px;letter-spacing:1.5px;color:#d8b56b;font-weight:700}
+.permission-dialog h2{font-size:23px;margin:8px 0}
+.permission-dialog>p{font-size:14px;line-height:1.65;opacity:.78;margin:0 0 18px}
+.permission-benefit{display:flex;align-items:center;gap:13px;padding:12px 0;border-top:1px solid rgba(150,160,150,.16)}
+.permission-benefit>span{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:rgba(212,175,90,.12);color:#d8b56b;font-size:20px}
+.permission-benefit b,.permission-benefit small{display:block}.permission-benefit b{font-size:14px}.permission-benefit small{font-size:12px;opacity:.65;margin-top:3px}
+.permission-dialog .gold-button,.permission-dialog .reset{width:100%;margin-top:12px}.permission-dialog button:disabled{opacity:.6}
+:root[data-theme="light"] .permission-dialog{background:#fff;color:#17251f}
