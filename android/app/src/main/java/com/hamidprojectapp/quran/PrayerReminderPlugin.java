@@ -68,6 +68,14 @@ public class PrayerReminderPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void checkExactAlarmPermission(PluginCall call) {
+        boolean allowed = Build.VERSION.SDK_INT < 31 || getContext().getSystemService(AlarmManager.class).canScheduleExactAlarms();
+        JSObject result = new JSObject();
+        result.put("allowed", allowed);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void openExactAlarmSettings(PluginCall call) {
         if (Build.VERSION.SDK_INT >= 31) {
             Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getContext().getPackageName()));
