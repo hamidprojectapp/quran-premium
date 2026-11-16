@@ -43,6 +43,9 @@ public class PrayerReminderPlugin extends Plugin {
             String old = context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).getString("events", "[]");
             JSONArray previous = new JSONArray(old);
             for (int i = 0; i < previous.length(); i++) PrayerAlarmReceiver.cancel(context, previous.getJSONObject(i).optString("id", ""));
+            String legacy = context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).getString("items", "[]");
+            JSONArray oldItems = new JSONArray(legacy);
+            for (int i = 0; i < oldItems.length(); i++) PrayerAlarmReceiver.cancelLegacy(context, oldItems.getJSONObject(i).optString("name", ""));
             int scheduled = 0;
             JSONArray future = new JSONArray();
             long now = System.currentTimeMillis();
@@ -55,7 +58,7 @@ public class PrayerReminderPlugin extends Plugin {
                 future.put(event);
                 scheduled++;
             }
-            context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).edit().putString("events", future.toString()).apply();
+            context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).edit().putString("events", future.toString()).remove("items").apply();
             JSObject result = new JSObject();
             result.put("scheduled", scheduled);
             result.put("exactAlarmAllowed", Build.VERSION.SDK_INT < 31 || context.getSystemService(AlarmManager.class).canScheduleExactAlarms());
