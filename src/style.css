@@ -154,3 +154,26 @@
 :root[data-theme="light"] .prayer-next{background:linear-gradient(135deg,#e6f0e5,#f8f1df);border-color:#d8c99f}
 :root[data-theme="light"] .prayer-next b{color:#174b39}
 :root[data-theme="light"] .prayer-times div{background:#fffefa;border-color:#e5dfcf}
+
+
+/* Per-prayer reminder preferences */
+.prayer-reminders{margin-top:23px;padding-top:19px;border-top:1px solid rgba(216,182,106,.25)}
+.reminder-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.reminder-heading h3{font-size:16px;margin:6px 0;color:inherit}
+.reminder-tag{padding:6px 8px;border:1px solid rgba(216,182,106,.35);border-radius:20px;color:var(--gold);font-size:8px;letter-spacing:.7px}
+.prayer-reminders>p{color:var(--muted);font-size:10px;line-height:1.6}
+.reminder-row{padding:13px 0;border-bottom:1px solid rgba(216,182,106,.15)}
+.reminder-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.reminder-top>b{font-size:13px}
+.reminder-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.reminder-controls label{display:grid;gap:7px;color:var(--muted);font-size:9px}
+.reminder-controls select{width:100%;min-width:0;padding:10px 7px;border:1px solid rgba(216,182,106,.3);border-radius:10px;background:#102e27;color:#f4f1e7;font-size:10px}
+.reminder-switch{position:relative;width:43px;height:24px}
+.reminder-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.reminder-switch span{position:absolute;inset:0;border-radius:20px;background:#53665d;transition:.2s}
+.reminder-switch span:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:white;transition:.2s}
+.reminder-switch input:checked+span{background:#b9974d}
+.reminder-switch input:checked+span:before{transform:translateX(19px);background:#17382d}
+.reminder-switch input:focus-visible+span{outline:2px solid var(--gold);outline-offset:3px}
+.reminder-footnote{display:block;margin-top:13px;color:var(--muted)!important;font-size:9px!important;line-height:1.7}
+:root[data-theme="light"] .reminder-controls select{background:#fffefa;color:#183b30;border-color:#d9dfd7}
