@@ -177,3 +177,11 @@
 .reminder-switch input:focus-visible+span{outline:2px solid var(--gold);outline-offset:3px}
 .reminder-footnote{display:block;margin-top:13px;color:var(--muted)!important;font-size:9px!important;line-height:1.7}
 :root[data-theme="light"] .reminder-controls select{background:#fffefa;color:#183b30;border-color:#d9dfd7}
+
+
+/* Prayer reminder choices use the same native Android picker as Qari settings */
+.reminder-picker-field{min-width:0}
+.reminder-picker-field>label{display:block;margin:0 0 7px;color:var(--muted);font-size:9px}
+.reminder-controls .prayer-native-picker{min-width:0;margin:0;padding:12px 10px;border-radius:12px;font-size:11px;line-height:1.35}
+.reminder-controls .prayer-native-picker .picker-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:root[data-theme="light"] .reminder-controls .prayer-native-picker{background:#fffefa;color:#183b30;border-color:#d9dfd7}
