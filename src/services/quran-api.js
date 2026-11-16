@@ -13,7 +13,9 @@ export const getJuz = async n => Promise.all([
   request('/juz/' + n + '/id.indonesian')
 ]);
 
-export const getSurahAudio = (n, edition = 'ar.alafasy') => request('/surah/' + n + '/' + edition);\n\nexport const getJuzAudio = (n, edition = 'ar.alafasy') => request('/juz/' + n + '/' + edition);
+export const getSurahAudio = (n, edition = 'ar.alafasy') => request('/surah/' + n + '/' + edition);
+
+export const getJuzAudio = (n, edition = 'ar.alafasy') => request('/juz/' + n + '/' + edition);
 
 export const searchAyahs = keyword => request('/search/' + encodeURIComponent(keyword) + '/all/id.indonesian');
 
