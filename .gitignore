@@ -4,3 +4,8 @@ dist
 .env.local
 android/.gradle
 android/build
+
+# Local Android release signing files - never commit secrets
+android/keystore.properties
+*.jks
+*.keystore
