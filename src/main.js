@@ -165,10 +165,12 @@ async function fetchPrayerSchedule(coords,{silent=false}={}){const url='https://
 let prayerOnboardingLayer=null;
 let prayerOnboardingLocationGranted=false;
 let prayerOnboardingWaitingForExactAlarm=false;
+let prayerOnboardingLegacyOnly=false;
 async function finishPrayerOnboarding(){
  localStorage.setItem('quran-first-permissions-done','1');
  if(prayerOnboardingLayer){prayerOnboardingLayer.remove();prayerOnboardingLayer=null;}
  prayerOnboardingWaitingForExactAlarm=false;
+ if(prayerOnboardingLegacyOnly){localStorage.setItem('quran-exact-alarm-onboarding-v1','1');prayerOnboardingLegacyOnly=false;return;}
  if(prayerOnboardingLocationGranted){
   try{const coords=await position();prayerLocation={latitude:coords.latitude,longitude:coords.longitude,label:coords.latitude.toFixed(3)+', '+coords.longitude.toFixed(3)};localStorage.setItem('quran-prayer-location',JSON.stringify(prayerLocation));await fetchPrayerSchedule(coords,{silent:true});toast('Pengaturan awal selesai. Jadwal dan alarm sholat berhasil disiapkan.');}
   catch(error){toast(error.message||'Jadwal sholat belum dapat dimuat.');}
@@ -186,7 +188,21 @@ async function showExactAlarmStep(){
  prayerOnboardingLayer.querySelector('[data-permission-later]').addEventListener('click',async()=>{await finishPrayerOnboarding();});
 }
 function showPermissionOnboarding(){
- if(localStorage.getItem('quran-first-permissions-done')==='1')return;
+ if(localStorage.getItem('quran-first-permissions-done')==='1'){
+  if(localStorage.getItem('quran-exact-alarm-onboarding-v1')==='1')return;
+  const plugin=window.Capacitor?.Plugins?.PrayerReminder;
+  if(!plugin)return;
+  plugin.checkExactAlarmPermission().then(result=>{
+   if(result?.allowed){localStorage.setItem('quran-exact-alarm-onboarding-v1','1');return;}
+   prayerOnboardingLegacyOnly=true;
+   const layer=document.createElement('div');prayerOnboardingLayer=layer;layer.className='permission-onboarding';
+   layer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">◷</div><label>PEMBARUAN PENTING</label><h2>Aktifkan Alarm &amp; pengingat</h2><p>Agar azan dan pengingat sholat dapat dijadwalkan tepat waktu, Android memerlukan izin khusus ini. Izin ini berbeda dari izin notifikasi.</p><div class="permission-benefit"><span>◷</span><div><b>Alarm &amp; pengingat</b><small>Izinkan Quran Premium menjadwalkan alarm sholat</small></div></div><button class="gold-button" data-exact-alarm-open>Aktifkan Sekarang</button><button class="reset" data-permission-later>Nanti saja</button></div>';
+   document.body.append(layer);
+   layer.querySelector('[data-exact-alarm-open]').addEventListener('click',async()=>{try{prayerOnboardingWaitingForExactAlarm=true;await plugin.openExactAlarmSettings();}catch(error){prayerOnboardingWaitingForExactAlarm=false;toast('Pengaturan Alarm & pengingat tidak dapat dibuka.');console.error(error);}});
+   layer.querySelector('[data-permission-later]').addEventListener('click',async()=>{await finishPrayerOnboarding();});
+  }).catch(error=>console.warn('Pemeriksaan izin alarm saat pembaruan:',error));
+  return;
+ }
  const layer=document.createElement('div');prayerOnboardingLayer=layer;layer.className='permission-onboarding';
  layer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">۞</div><label>PENGATURAN AWAL</label><h2>Aktifkan layanan ibadah</h2><p>Berikan izin yang diperlukan agar jadwal sholat, notifikasi, dan alarm azan dapat bekerja dengan baik.</p><div class="permission-benefit"><span>⌖</span><div><b>Lokasi perangkat</b><small>Menentukan waktu sholat setempat</small></div></div><div class="permission-benefit"><span>♧</span><div><b>Notifikasi</b><small>Mengirim pengingat waktu sholat</small></div></div><div class="permission-benefit"><span>◷</span><div><b>Alarm &amp; pengingat</b><small>Menjadwalkan azan tepat waktu melalui pengaturan Android</small></div></div><button class="gold-button" data-permission-start>Mulai pengaturan</button><button class="reset" data-permission-later>Nanti saja</button></div>';
  document.body.append(layer);
