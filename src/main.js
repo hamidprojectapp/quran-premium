@@ -12,7 +12,8 @@ let qiblaListener=null;
 let qiblaBearing=0;
 let currentHeading=0;
 let prayerCountdownTimer=null;
-let prayerSchedule=null;
+let prayerSchedule=JSON.parse(localStorage.getItem('quran-prayer-schedule')||'null');
+let prayerAlarmSyncAt=0;
 let prayerLocation=JSON.parse(localStorage.getItem('quran-prayer-location')||'null');
 const defaultPrayerSettings=()=>Object.fromEntries(['Subuh','Zuhur','Ashar','Magrib','Isya'].map(n=>[n,{enabled:true,lead:'0',sound:n==='Subuh'?'fajr':'adhan'}]));
 let prayerSettings=JSON.parse(localStorage.getItem('quran-prayer-settings')||'null')||defaultPrayerSettings();
@@ -76,23 +77,51 @@ function renderPrayerSchedule(){
  if(prayerCountdownTimer)clearInterval(prayerCountdownTimer);
  prayerCountdownTimer=setInterval(updatePrayerCountdown,1000);
 }
-async function syncPrayerReminders(){
- if(!prayerSchedule?.timings)return;
+async function syncPrayerReminders({force=false}={}){
  const plugin=window.Capacitor?.Plugins?.PrayerReminder;
- if(!plugin)return;
- const timings=prayerSchedule.timings;
+ const location=prayerLocation||JSON.parse(localStorage.getItem('quran-prayer-location')||'null');
+ if(!plugin||!location?.latitude||!location?.longitude)return;
+ const last=Number(localStorage.getItem('quran-prayer-alarms-synced-at')||0);
+ if(!force&&Date.now()-last<12*60*60*1000)return;
  const map={Subuh:'Fajr',Zuhur:'Dhuhr',Ashar:'Asr',Magrib:'Maghrib',Isya:'Isha'};
- const prayers=Object.entries(map).map(([name,key])=>{
-  const parts=String(timings[key]||'').split(':');
-  const setting=prayerSettings[name]||{enabled:true,lead:'0',sound:name==='Subuh'?'fajr':'adhan'};
-  return {name,hour:Number(parts[0]),minute:Number(parts[1]),lead:Number(setting.lead||0),sound:setting.sound||'short',enabled:!!setting.enabled};
- }).filter(x=>Number.isFinite(x.hour)&&Number.isFinite(x.minute));
+ const events=[];
+ const now=new Date();
  try{
-  /* Izin notifikasi diminta pada pengaturan awal, bukan saat sinkronisasi jadwal. */
-  const result=await plugin.schedule({prayers});
+  for(let offset=0;offset<3;offset++){
+   const monthDate=new Date(now.getFullYear(),now.getMonth()+offset,1);
+   const year=monthDate.getFullYear(),month=monthDate.getMonth()+1;
+   const url='https://api.aladhan.com/v1/calendar/'+year+'/'+month+'?latitude='+location.latitude+'&longitude='+location.longitude+'&method=20&school=0';
+   const response=await fetch(url);
+   if(!response.ok)throw Error('Kalender waktu sholat tidak dapat diunduh.');
+   const json=await response.json();
+   if(json.code!==200||!Array.isArray(json.data))throw Error('Kalender waktu sholat tidak tersedia.');
+   for(const day of json.data){
+    const dateParts=String(day.date?.gregorian?.date||'').split('-');
+    if(dateParts.length!==3)continue;
+    const [dd,mm,yyyy]=dateParts;
+    for(const [name,key] of Object.entries(map)){
+     const setting=prayerSettings[name]||{enabled:true,lead:'0',sound:name==='Subuh'?'fajr':'adhan'};
+     if(!setting.enabled)continue;
+     const timeParts=String(day.timings?.[key]||'').match(/^(\\d{1,2}):(\\d{2})/);
+     if(!timeParts)continue;
+     const alarmDate=new Date(Number(yyyy),Number(mm)-1,Number(dd),Number(timeParts[1]),Number(timeParts[2]),0,0);
+     alarmDate.setMinutes(alarmDate.getMinutes()-Number(setting.lead||0));
+     if(alarmDate.getTime()<=Date.now())continue;
+     const dateKey=yyyy+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
+     events.push({id:dateKey+'-'+name,name,at:alarmDate.getTime(),sound:setting.sound||'short',enabled:true});
+    }
+   }
+  }
+  const result=await plugin.schedule({events});
+  localStorage.setItem('quran-prayer-alarms-synced-at',String(Date.now()));
+  prayerAlarmSyncAt=Date.now();
   const note=document.querySelector('.reminder-footnote');
-  if(note)note.textContent=result.exactAlarmAllowed?'Jadwal pengingat telah dikirim ke Android. Pastikan izin notifikasi diaktifkan.':'Jadwal disimpan. Aktifkan izin Alarm & pengingat di pengaturan Android agar waktunya lebih akurat.';
- }catch(error){console.warn('Pengingat sholat belum dapat dijadwalkan:',error);}
+  if(note)note.textContent=result.exactAlarmAllowed?'Alarm sholat untuk sekitar 3 bulan ke depan sudah dijadwalkan di Android.':'Alarm tersimpan, tetapi izin Alarm & pengingat tepat waktu perlu diaktifkan di pengaturan Android.';
+ }catch(error){
+  console.warn('Pengingat sholat belum dapat dijadwalkan:',error);
+  const note=document.querySelector('.reminder-footnote');
+  if(note)note.textContent='Jadwal alarm belum berhasil diperbarui. Periksa koneksi internet dan izin alarm Android.';
+ }
 }
 function updatePrayerCountdown(){
  if(!prayerSchedule)return;
@@ -129,7 +158,7 @@ async function openSurah(n,ayah=1){
 function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),3000);}
 async function position(){const permission=await Geolocation.checkPermissions();if(permission.location!=='granted'){const requested=await Geolocation.requestPermissions();if(requested.location!=='granted')throw Error('Izin lokasi belum diberikan.');}const result=await Geolocation.getCurrentPosition({enableHighAccuracy:true,timeout:15000});return result.coords;}
 function savePrayerSchedule(data){prayerSchedule=data;localStorage.setItem('quran-prayer-schedule',JSON.stringify(data));localStorage.setItem('quran-prayer-schedule-saved-at',String(Date.now()));}
-async function fetchPrayerSchedule(coords,{silent=false}={}){const url='https://api.aladhan.com/v1/timings?latitude='+coords.latitude+'&longitude='+coords.longitude+'&method=20&school=0';const response=await fetch(url);const json=await response.json();if(json.code!==200||!json.data?.timings)throw Error('Data jadwal sholat tidak tersedia.');savePrayerSchedule(json.data);if(!silent)toast('Jadwal sholat berhasil diperbarui.');if(S.page==='ibadah'&&S.ibadahTool==='prayer')renderPrayerSchedule();else syncPrayerReminders();return json.data;}
+async function fetchPrayerSchedule(coords,{silent=false}={}){const url='https://api.aladhan.com/v1/timings?latitude='+coords.latitude+'&longitude='+coords.longitude+'&method=20&school=0';const response=await fetch(url);if(!response.ok)throw Error('Tidak dapat terhubung ke layanan jadwal sholat.');const json=await response.json();if(json.code!==200||!json.data?.timings)throw Error('Data jadwal sholat tidak tersedia.');savePrayerSchedule(json.data);await syncPrayerReminders({force:true});if(!silent)toast('Jadwal sholat dan alarm beberapa bulan ke depan berhasil diperbarui.');if(S.page==='ibadah'&&S.ibadahTool==='prayer')renderPrayerSchedule();return json.data;}
 function showPermissionOnboarding(){if(localStorage.getItem('quran-first-permissions-done')==='1')return;const layer=document.createElement('div');layer.className='permission-onboarding';layer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">۞</div><label>PENGATURAN AWAL</label><h2>Aktifkan layanan ibadah</h2><p>Izinkan akses lokasi untuk menghitung jadwal sholat sesuai posisi Anda, serta notifikasi agar pengingat waktu sholat dapat dikirim.</p><div class="permission-benefit"><span>⌖</span><div><b>Lokasi perangkat</b><small>Menentukan waktu sholat setempat</small></div></div><div class="permission-benefit"><span>♧</span><div><b>Notifikasi</b><small>Mengirim pengingat waktu sholat</small></div></div><button class="gold-button" data-permission-start>Izinkan sekarang</button><button class="reset" data-permission-later>Nanti saja</button></div>';
 document.body.append(layer);layer.querySelector('[data-permission-later]').addEventListener('click',()=>{localStorage.setItem('quran-first-permissions-done','1');layer.remove();});layer.querySelector('[data-permission-start]').addEventListener('click',async()=>{const action=layer.querySelector('[data-permission-start]');action.disabled=true;action.textContent='Meminta izin…';let locationGranted=false;try{let status=await Geolocation.checkPermissions();if(status.location!=='granted')status=await Geolocation.requestPermissions();locationGranted=status.location==='granted';}catch(error){console.warn('Izin lokasi:',error);}try{const reminder=window.Capacitor?.Plugins?.PrayerReminder;if(reminder)await reminder.requestNotificationPermission();}catch(error){console.warn('Izin notifikasi:',error);}localStorage.setItem('quran-first-permissions-done','1');layer.remove();if(locationGranted){try{const coords=await position();prayerLocation={latitude:coords.latitude,longitude:coords.longitude,label:coords.latitude.toFixed(3)+', '+coords.longitude.toFixed(3)};localStorage.setItem('quran-prayer-location',JSON.stringify(prayerLocation));await fetchPrayerSchedule(coords,{silent:true});toast('Izin aktif. Jadwal sholat berhasil dimuat.');}catch(error){toast(error.message||'Jadwal sholat belum dapat dimuat.');}}else toast('Izin lokasi belum diberikan. Anda dapat mengaktifkannya nanti dari Jadwal Sholat.');});}
 async function initializePrayerExperience(){try{const cached=localStorage.getItem('quran-prayer-schedule');if(cached){prayerSchedule=JSON.parse(cached);if(prayerSchedule?.timings)syncPrayerReminders();}}catch(error){localStorage.removeItem('quran-prayer-schedule');}showPermissionOnboarding();if(localStorage.getItem('quran-first-permissions-done')==='1'){try{const status=await Geolocation.checkPermissions();if(status.location==='granted'){const coords=await position();prayerLocation={latitude:coords.latitude,longitude:coords.longitude,label:coords.latitude.toFixed(3)+', '+coords.longitude.toFixed(3)};localStorage.setItem('quran-prayer-location',JSON.stringify(prayerLocation));await fetchPrayerSchedule(coords,{silent:true});}}catch(error){console.warn('Pemulihan jadwal sholat:',error);}}}
@@ -145,7 +174,7 @@ function tool(name){
  ];
  box.innerHTML='<div class="panel tool"><label>ASMAUL HUSNA</label><h2>99 Nama Allah</h2><p>Mengenal dan menghayati nama-nama Allah yang indah.</p></div><div class="asma-list">'+names.map((n,i)=>'<article class="asma-item"><span class="number">'+(i+1)+'</span><div><div class="arabic">'+n[0]+'</div><b>'+n[1]+'</b><small>'+n[2]+'</small></div></article>').join('')+'</div>';
  }
- if(name==='prayer'){box.innerHTML=prayerMarkup();if(prayerSchedule)renderPrayerSchedule();}
+ if(name==='prayer'){box.innerHTML=prayerMarkup();if(prayerSchedule)renderPrayerSchedule();else if(prayerLocation)fetchPrayerSchedule(prayerLocation,{silent:true}).catch(error=>console.warn('Jadwal sholat:',error));}
  if(name==='prayer-settings')box.innerHTML=prayerSettingsMarkup();
  if(name==='qibla')box.innerHTML='<div class="panel tool qibla-panel"><label>ARAH KIBLAT</label><h2>Kompas Kiblat</h2><p>Arah Ka’bah berdasarkan lokasi dan sensor kompas perangkat.</p><div class="qibla-compass"><div class="qibla-ring" id="qibla-ring"><span class="north">U</span><span class="east">T</span><span class="south">S</span><span class="west">B</span></div><div class="qibla-needle" id="qibla-needle"><span></span></div><div class="qibla-center">۞</div></div><div class="qibla-degree" id="qibla-degree">--°</div><div class="qibla-direction" id="qibla-direction">Arah kiblat belum dihitung</div><button class="gold-button" id="locate">Aktifkan kompas & lokasi</button><div class="qibla-status" id="result">Pastikan GPS aktif dan jauhkan ponsel dari benda bermagnet.</div></div>';
  box.insertAdjacentHTML('afterbegin','<button class="back ibadah-back" data-ibadah-back>‹ Kembali ke Ruang Ibadah</button>');
@@ -200,7 +229,7 @@ document.addEventListener('click',async e=>{
    localStorage.setItem('quran-prayer-settings',JSON.stringify(prayerSettings));
    const label=document.querySelector('[data-prayer-picker="'+key+'"][data-prayer-name="'+name+'"] .picker-value');
    if(label)label.textContent=group.items[result.index][1];
-   syncPrayerReminders();
+   syncPrayerReminders({force:true});
    toast('Pengaturan '+name+' disimpan.');
   }catch(error){console.error(error);toast('Pilihan tidak dapat dibuka.');}
   return;
