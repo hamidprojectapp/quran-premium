@@ -75,3 +75,61 @@
 .dua-latin{font-size:11px;line-height:1.8;color:#e2c987;font-style:italic}
 .dua-meaning{font-size:11px;line-height:1.8;color:#c6d8ce}
 .dua-source{display:block;margin-top:9px;color:var(--gold);font-size:9px}
+
+
+/* Theme selection controls */
+.theme-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:14px 0 8px}
+.theme-choice{padding:11px 5px;border:1px solid rgba(216,182,106,.32);border-radius:12px;background:rgba(255,255,255,.045);color:inherit;font-size:11px;font-weight:700}
+.theme-choice.selected{background:linear-gradient(120deg,#c7a85e,#e8d18d);border-color:#e8d18d;color:#17362c}
+.theme-settings>small{display:block;color:var(--muted);font-size:10px;line-height:1.6}
+
+/* Light Ivory Emerald theme */
+:root[data-theme="light"]{color-scheme:light;--bg:#f6f5ef;--panel:#fffefa;--gold:#a77a2d;--muted:#718078;color:#183b30;background:#f6f5ef}
+:root[data-theme="light"] body{background:radial-gradient(ellipse at 50% -15%,#e5efe7,transparent 55%),var(--bg);color:#183b30}
+:root[data-theme="light"] header{background:#fffefaed;border-bottom-color:#183b3018}
+:root[data-theme="light"] header em,:root[data-theme="light"] .logo,:root[data-theme="light"] .hero label,:root[data-theme="light"] .heading label,:root[data-theme="light"] .panel label,:root[data-theme="light"] .surah-hero label{color:#a77a2d}
+:root[data-theme="light"] .profile{background:#edf4ed;color:#a77a2d;border-color:#c6a66b}
+:root[data-theme="light"] .hero{background:linear-gradient(135deg,#e4efe5,#f8f4e8);border-color:#d7c69d}
+:root[data-theme="light"] .hero h1,:root[data-theme="light"] .hero h1 i{color:#174b39}
+:root[data-theme="light"] .hero p,:root[data-theme="light"] .heading p,:root[data-theme="light"] .panel p{color:#63766c}
+:root[data-theme="light"] .bismillah,:root[data-theme="light"] .arabic{color:#174b39}
+:root[data-theme="light"] .panel{background:#fffefa;border-color:#e5dfcf;box-shadow:0 4px 16px #183b3009}
+:root[data-theme="light"] .verse p,:root[data-theme="light"] .ayah p{color:#455b50}
+:root[data-theme="light"] .continue,:root[data-theme="light"] .saved,:root[data-theme="light"] .tiles button,:root[data-theme="light"] .feature-list>button{background:#fffefa;border-color:#e5dfcf;color:#183b30}
+:root[data-theme="light"] .continue small,:root[data-theme="light"] .saved small,:root[data-theme="light"] .tiles small,:root[data-theme="light"] .surah small,:root[data-theme="light"] .feature-list small{color:#718078}
+:root[data-theme="light"] .nav-item{color:#718078}
+:root[data-theme="light"] .nav-item.active{color:#176044}
+:root[data-theme="light"] nav{background:#fffefaf2;border-top-color:#dfe5dc}
+:root[data-theme="light"] .search,:root[data-theme="light"] .search-result,:root[data-theme="light"] .ayah-search-row input,:root[data-theme="light"] .dua-search input,:root[data-theme="light"] .reciter-select{background:#fffefa;color:#183b30;border-color:#d9dfd7}
+:root[data-theme="light"] .search input,:root[data-theme="light"] .dua-search input{color:#183b30}
+:root[data-theme="light"] .switch button{background:#fffefa;color:#718078;border-color:#dfe5dc}
+:root[data-theme="light"] .switch .selected{color:#946b25;border-color:#c7a66a}
+:root[data-theme="light"] .surah{border-bottom-color:#e4e8e1}
+:root[data-theme="light"] .surah strong{color:#946b25}
+:root[data-theme="light"] .surah-hero{background:linear-gradient(140deg,#e5f0e6,#f8f2e4);border-color:#d8c99f}
+:root[data-theme="light"] .surah-hero h1{color:#174b39}
+:root[data-theme="light"] .surah-hero p{color:#63766c}
+:root[data-theme="light"] .ayah{border-bottom-color:#e4e8e1}
+:root[data-theme="light"] .ayah.playing,:root[data-theme="light"] .ayah:target{background:#e9f3e9;border-color:#c5a66a}
+:root[data-theme="light"] .word-arabic{color:#174b39}
+:root[data-theme="light"] .word-item small{color:#63766c}
+:root[data-theme="light"] .read-mark,:root[data-theme="light"] .audio-play{background:#edf4ed;color:#805d22;border-color:#d9c28f}
+:root[data-theme="light"] .feature-list span{color:#183b30}
+:root[data-theme="light"] .asma-item,:root[data-theme="light"] .dua-card{background:#fffefa;border-color:#e5dfcf}
+:root[data-theme="light"] .asma-item b,:root[data-theme="light"] .dua-card-top b{color:#805d22}
+:root[data-theme="light"] .dua-latin{color:#805d22}
+:root[data-theme="light"] .dua-meaning{color:#455b50}
+:root[data-theme="light"] .dua-arabic{color:#174b39}
+:root[data-theme="light"] .qibla-compass{background:radial-gradient(circle,#e5f0e6 0%,#f8f4e9 68%,#e7eadf 100%)}
+:root[data-theme="light"] .qibla-ring span{color:#805d22}
+:root[data-theme="light"] .qibla-center{background:#fffefa;color:#805d22}
+:root[data-theme="light"] .qibla-degree{color:#805d22}
+:root[data-theme="light"] .qibla-direction{color:#63766c}
+:root[data-theme="light"] .qibla-status{color:#718078}
+:root[data-theme="light"] .prayer-grid div{background:#edf4ed}
+:root[data-theme="light"] .prayer-grid small{color:#63766c}
+:root[data-theme="light"] .about-developer h2,:root[data-theme="light"] .github-project-link b{color:#805d22}
+:root[data-theme="light"] .github-project-link{background:#f8f7f0;border-color:#e2d7bd}
+:root[data-theme="light"] .native-setting-button{background:#f8f8f2;border-color:#e2d7bd}
+:root[data-theme="light"] .native-setting-button span:last-child{color:#946b25}
+:root[data-theme="light"] .toast{background:#174b39;color:#fff}
