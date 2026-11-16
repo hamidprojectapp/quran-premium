@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
-
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -16,19 +15,15 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.PermissionState;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Calendar;
 
 @CapacitorPlugin(name = "PrayerReminder", permissions = { @Permission(alias = "notifications", strings = { Manifest.permission.POST_NOTIFICATIONS }) })
 public class PrayerReminderPlugin extends Plugin {
     @PluginMethod
     public void requestNotificationPermission(PluginCall call) {
         if (Build.VERSION.SDK_INT < 33 || getPermissionState("notifications") == PermissionState.GRANTED) {
-            call.resolve();
-            return;
+            call.resolve(); return;
         }
         requestPermissionForAlias("notifications", call, "notificationPermissionCallback");
     }
@@ -41,41 +36,38 @@ public class PrayerReminderPlugin extends Plugin {
 
     @PluginMethod
     public void schedule(PluginCall call) {
-        JSONArray items = call.getArray("prayers");
-        if (items == null) {
-            call.reject("Daftar jadwal sholat tidak ditemukan.");
-            return;
-        }
+        JSONArray events = call.getArray("events");
+        if (events == null) { call.reject("Daftar alarm bertanggal tidak ditemukan."); return; }
         try {
-            getContext().getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE)
-                .edit().putString("items", items.toString()).apply();
+            Context context = getContext();
+            String old = context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).getString("events", "[]");
+            JSONArray previous = new JSONArray(old);
+            for (int i = 0; i < previous.length(); i++) PrayerAlarmReceiver.cancel(context, previous.getJSONObject(i).optString("id", ""));
             int scheduled = 0;
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject item = items.getJSONObject(i);
-                PrayerAlarmReceiver.cancel(getContext(), item.optString("name", ""));
-                if (!item.optBoolean("enabled", false)) continue;
-                int hour = item.optInt("hour", -1);
-                int minute = item.optInt("minute", -1);
-                int lead = item.optInt("lead", 0);
-                if (hour < 0 || hour > 23 || minute < 0 || minute > 59) continue;
-                PrayerAlarmReceiver.schedule(getContext(), item.optString("name", "Sholat"), hour, minute, lead, item.optString("sound", "short"));
+            JSONArray future = new JSONArray();
+            long now = System.currentTimeMillis();
+            for (int i = 0; i < events.length(); i++) {
+                JSONObject event = events.getJSONObject(i);
+                if (!event.optBoolean("enabled", true)) continue;
+                long at = event.optLong("at", 0L);
+                if (at <= now) continue;
+                PrayerAlarmReceiver.scheduleAt(context, event);
+                future.put(event);
                 scheduled++;
             }
+            context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).edit().putString("events", future.toString()).apply();
             JSObject result = new JSObject();
             result.put("scheduled", scheduled);
-            result.put("exactAlarmAllowed", Build.VERSION.SDK_INT < 31 || getContext().getSystemService(AlarmManager.class).canScheduleExactAlarms());
+            result.put("exactAlarmAllowed", Build.VERSION.SDK_INT < 31 || context.getSystemService(AlarmManager.class).canScheduleExactAlarms());
             result.put("notificationPermissionRequired", Build.VERSION.SDK_INT >= 33);
             call.resolve(result);
-        } catch (Exception error) {
-            call.reject("Gagal menjadwalkan pengingat sholat.", error);
-        }
+        } catch (Exception error) { call.reject("Gagal menjadwalkan pengingat sholat.", error); }
     }
 
     @PluginMethod
     public void openExactAlarmSettings(PluginCall call) {
         if (Build.VERSION.SDK_INT >= 31) {
-            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                Uri.parse("package:" + getContext().getPackageName()));
+            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getContext().getPackageName()));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(intent);
         }
@@ -83,13 +75,25 @@ public class PrayerReminderPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void stopAdhan(PluginCall call) {
+        Intent intent = new Intent(getContext(), AdhanPlaybackService.class);
+        intent.setAction(AdhanPlaybackService.ACTION_STOP);
+        getContext().startService(intent);
+        call.resolve();
+    }
+
+    @PluginMethod
     public void cancelAll(PluginCall call) {
-        String raw = getContext().getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).getString("items", "[]");
+        Context context = getContext();
+        String raw = context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).getString("events", "[]");
         try {
-            JSONArray items = new JSONArray(raw);
-            for (int i = 0; i < items.length(); i++) PrayerAlarmReceiver.cancel(getContext(), items.getJSONObject(i).optString("name", ""));
+            JSONArray events = new JSONArray(raw);
+            for (int i = 0; i < events.length(); i++) PrayerAlarmReceiver.cancel(context, events.getJSONObject(i).optString("id", ""));
         } catch (Exception ignored) {}
-        getContext().getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).edit().remove("items").apply();
+        context.getSharedPreferences("prayer_reminders", Context.MODE_PRIVATE).edit().remove("events").apply();
+        Intent stop = new Intent(context, AdhanPlaybackService.class);
+        stop.setAction(AdhanPlaybackService.ACTION_STOP);
+        context.startService(stop);
         call.resolve();
     }
 }
