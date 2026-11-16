@@ -14,14 +14,31 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.PermissionState;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Calendar;
 
-@CapacitorPlugin(name = "PrayerReminder")
+@CapacitorPlugin(name = "PrayerReminder", permissions = { @Permission(alias = "notifications", strings = { Manifest.permission.POST_NOTIFICATIONS }) })
 public class PrayerReminderPlugin extends Plugin {
+    @PluginMethod
+    public void requestNotificationPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 33 || getPermissionState("notifications") == PermissionState.GRANTED) {
+            call.resolve();
+            return;
+        }
+        requestPermissionForAlias("notifications", call, "notificationPermissionCallback");
+    }
+
+    @com.getcapacitor.annotation.PermissionCallback
+    private void notificationPermissionCallback(PluginCall call) {
+        if (getPermissionState("notifications") == PermissionState.GRANTED) call.resolve();
+        else call.reject("Izin notifikasi belum diberikan.");
+    }
+
     @PluginMethod
     public void schedule(PluginCall call) {
         JSONArray items = call.getArray("prayers");
