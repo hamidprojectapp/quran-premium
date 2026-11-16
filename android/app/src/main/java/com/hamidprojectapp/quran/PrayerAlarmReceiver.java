@@ -49,6 +49,20 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
         if (alarms != null && !id.isEmpty()) alarms.cancel(pending(context, id));
     }
 
+    static void cancelLegacy(Context context, String name) {
+        if (name == null || name.isEmpty()) return;
+        Intent intent = new Intent(context, PrayerAlarmReceiver.class);
+        intent.setAction("com.hamidprojectapp.quran.PRAYER_" + name);
+        intent.putExtra("name", name);
+        PendingIntent old = PendingIntent.getBroadcast(context, name.hashCode(), intent,
+            PendingIntent.FLAG_NO_CREATE | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
+        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (old != null) {
+            if (alarms != null) alarms.cancel(old);
+            old.cancel();
+        }
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String id = intent.getStringExtra("eventId");
