@@ -102,7 +102,7 @@ async function syncPrayerReminders({force=false}={}){
     for(const [name,key] of Object.entries(map)){
      const setting=prayerSettings[name]||{enabled:true,lead:'0',sound:name==='Subuh'?'fajr':'adhan'};
      if(!setting.enabled)continue;
-     const timeParts=String(day.timings?.[key]||'').match(/^(\\d{1,2}):(\\d{2})/);
+     const timeParts=String(day.timings?.[key]||'').match(/^(\d{1,2}):(\d{2})/);
      if(!timeParts)continue;
      const alarmDate=new Date(Number(yyyy),Number(mm)-1,Number(dd),Number(timeParts[1]),Number(timeParts[2]),0,0);
      alarmDate.setMinutes(alarmDate.getMinutes()-Number(setting.lead||0));
