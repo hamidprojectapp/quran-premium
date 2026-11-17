@@ -330,6 +330,8 @@ async function verifyExactAlarmPermissionOnResume(){
 }
 if(Capacitor.isNativePlatform()){
  App.addListener('backButton',handleHardwareBack).catch(error=>console.warn('Listener tombol kembali tidak aktif:',error));
+}
+if(window.Capacitor?.isNativePlatform?.()){
  App.addListener('appStateChange',async({isActive})=>{if(isActive)await verifyExactAlarmPermissionOnResume();});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')verifyExactAlarmPermissionOnResume();});
  window.addEventListener('focus',()=>verifyExactAlarmPermissionOnResume());
