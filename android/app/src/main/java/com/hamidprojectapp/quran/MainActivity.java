@@ -1,6 +1,7 @@
 package com.hamidprojectapp.quran;
 
 import com.getcapacitor.BridgeActivity;
+import com.capacitorjs.plugins.geolocation.GeolocationPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -8,6 +9,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(NativePickerPlugin.class);
         registerPlugin(QiblaCompassPlugin.class);
         registerPlugin(PrayerReminderPlugin.class);
+        registerPlugin(GeolocationPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
