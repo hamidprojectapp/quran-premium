@@ -35,6 +35,15 @@ public class PrayerReminderPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void checkNotificationPermission(PluginCall call) {
+        boolean granted = Build.VERSION.SDK_INT < 33
+            || getPermissionState("notifications") == PermissionState.GRANTED;
+        JSObject result = new JSObject();
+        result.put("granted", granted);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void schedule(PluginCall call) {
         JSONArray events = call.getArray("events");
         if (events == null) { call.reject("Daftar alarm bertanggal tidak ditemukan."); return; }
