@@ -210,10 +210,38 @@ function showPermissionOnboarding(){
   return;
  }
  const layer=document.createElement('div');prayerOnboardingLayer=layer;layer.className='permission-onboarding';
- layer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">۞</div><label>PENGATURAN AWAL</label><h2>Aktifkan layanan ibadah</h2><p>Berikan izin yang diperlukan agar jadwal sholat, notifikasi, dan alarm azan dapat bekerja dengan baik.</p><div class="permission-benefit"><span>⌖</span><div><b>Lokasi perangkat</b><small>Menentukan waktu sholat setempat</small></div></div><div class="permission-benefit"><span>♧</span><div><b>Notifikasi</b><small>Mengirim pengingat waktu sholat</small></div></div><div class="permission-benefit"><span>◷</span><div><b>Alarm &amp; pengingat</b><small>Menjadwalkan azan tepat waktu melalui pengaturan Android</small></div></div><button class="gold-button" data-permission-start>Mulai pengaturan</button><button class="reset" data-permission-later>Nanti saja</button></div>';
  document.body.append(layer);
- layer.querySelector('[data-permission-later]').addEventListener('click',async()=>{prayerOnboardingLocationGranted=false;await finishPrayerOnboarding();});
- layer.querySelector('[data-permission-start]').addEventListener('click',async()=>{const action=layer.querySelector('[data-permission-start]');action.disabled=true;action.textContent='Meminta izin…';try{let status=await Geolocation.checkPermissions();if(!hasLocationPermission(status))status=await Geolocation.requestPermissions();status=await Geolocation.checkPermissions();prayerOnboardingLocationGranted=hasLocationPermission(status);}catch(error){console.warn('Izin lokasi:',error);}try{const reminder=window.Capacitor?.Plugins?.PrayerReminder;if(reminder){await reminder.requestNotificationPermission();const status=await reminder.checkNotificationPermission();}else if('Notification'in window&&Notification.permission==='default'){await Notification.requestPermission();}}catch(error){console.warn('Izin notifikasi:',error);}await showExactAlarmStep();});
+ showLocationPermissionStep();
+}
+async function showLocationPermissionStep(){
+ if(!prayerOnboardingLayer)return;
+ let status={};
+ try{status=await Geolocation.checkPermissions();}catch(error){console.warn('Pemeriksaan izin lokasi:',error);}
+ if(hasLocationPermission(status)){await showNotificationPermissionStep();return;}
+ prayerOnboardingLayer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">⌖</div><label>PENGATURAN AWAL · 1 DARI 3</label><h2>Izinkan lokasi</h2><p>Lokasi digunakan untuk menentukan jadwal sholat sesuai posisi perangkat. Pilih Izinkan saat Android meminta akses lokasi. Lokasi perkiraan juga dapat digunakan.</p><div class="permission-benefit"><span>⌖</span><div><b>Lokasi perangkat</b><small>Untuk jadwal sholat dan arah kiblat</small></div></div><button class="gold-button" data-location-allow>Izinkan Lokasi</button><button class="reset" data-location-check>Saya sudah mengizinkan</button></div>';
+ prayerOnboardingLayer.querySelector('[data-location-allow]').addEventListener('click',async()=>{
+  const button=prayerOnboardingLayer?.querySelector('[data-location-allow]');if(button){button.disabled=true;button.textContent='Meminta izin…';}
+  try{let current=await Geolocation.checkPermissions();if(!hasLocationPermission(current))await Geolocation.requestPermissions();current=await Geolocation.checkPermissions();if(hasLocationPermission(current)){await showNotificationPermissionStep();return;}toast('Izin lokasi belum diberikan. Silakan izinkan lokasi untuk melanjutkan.');}
+  catch(error){console.warn('Permintaan izin lokasi:',error);toast('Permintaan izin lokasi gagal. Coba lagi.');}
+  const retry=prayerOnboardingLayer?.querySelector('[data-location-allow]');if(retry){retry.disabled=false;retry.textContent='Coba Izinkan Lagi';}
+ });
+ prayerOnboardingLayer.querySelector('[data-location-check]').addEventListener('click',async()=>{await showLocationPermissionStep();});
+}
+async function showNotificationPermissionStep(){
+ if(!prayerOnboardingLayer)return;
+ let granted=false;
+ try{const plugin=window.Capacitor?.Plugins?.PrayerReminder;if(plugin){const result=await plugin.checkNotificationPermission();granted=!!result?.granted;}else granted='Notification'in window&&Notification.permission==='granted';}catch(error){console.warn('Pemeriksaan izin notifikasi:',error);}
+ if(granted){await showExactAlarmStep();return;}
+ prayerOnboardingLayer.innerHTML='<div class="permission-dialog"><div class="permission-symbol">♧</div><label>PENGATURAN AWAL · 2 DARI 3</label><h2>Izinkan notifikasi</h2><p>Notifikasi diperlukan untuk menampilkan pengingat waktu sholat. Setelah izin lokasi selesai, sekarang izinkan notifikasi.</p><div class="permission-benefit"><span>♧</span><div><b>Notifikasi</b><small>Menampilkan pengingat waktu sholat</small></div></div><button class="gold-button" data-notification-allow>Izinkan Notifikasi</button><button class="reset" data-notification-check>Saya sudah mengizinkan</button></div>';
+ prayerOnboardingLayer.querySelector('[data-notification-allow]').addEventListener('click',async()=>{
+  const button=prayerOnboardingLayer?.querySelector('[data-notification-allow]');if(button){button.disabled=true;button.textContent='Meminta izin…';}
+  try{const plugin=window.Capacitor?.Plugins?.PrayerReminder;if(plugin){await plugin.requestNotificationPermission();const result=await plugin.checkNotificationPermission();granted=!!result?.granted;}else if('Notification'in window){granted=await Notification.requestPermission()==='granted';}
+   if(granted){await showExactAlarmStep();return;}
+   toast('Izin notifikasi belum diberikan. Izinkan notifikasi untuk melanjutkan.');
+  }catch(error){console.warn('Permintaan izin notifikasi:',error);toast('Permintaan izin notifikasi belum berhasil. Periksa izin aplikasi Android.');}
+  const retry=prayerOnboardingLayer?.querySelector('[data-notification-allow]');if(retry){retry.disabled=false;retry.textContent='Coba Izinkan Lagi';}
+ });
+ prayerOnboardingLayer.querySelector('[data-notification-check]').addEventListener('click',async()=>{await showNotificationPermissionStep();});
 }
 async function initializePrayerExperience(){try{const cached=localStorage.getItem('quran-prayer-schedule');if(cached){prayerSchedule=JSON.parse(cached);if(prayerSchedule?.timings)syncPrayerReminders();}}catch(error){localStorage.removeItem('quran-prayer-schedule');}showPermissionOnboarding();if(localStorage.getItem('quran-first-permissions-done')==='1'){try{const status=await Geolocation.checkPermissions();if(hasLocationPermission(status)){const coords=await position();prayerLocation={latitude:coords.latitude,longitude:coords.longitude,label:coords.latitude.toFixed(3)+', '+coords.longitude.toFixed(3)};localStorage.setItem('quran-prayer-location',JSON.stringify(prayerLocation));await fetchPrayerSchedule(coords,{silent:true});}}catch(error){console.warn('Pemulihan jadwal sholat:',error);}}}
 function tool(name){
