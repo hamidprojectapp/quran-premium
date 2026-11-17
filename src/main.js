@@ -1,5 +1,6 @@
 import './style.css';
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import {dailyDuas} from './data/daily-duas.js';
 import {getSurahs,getSurah,getJuz,getJuzAudio,getSurahAudio,searchAyahs,getSurahWordTranslations} from './services/quran-api.js';
@@ -327,7 +328,7 @@ async function verifyExactAlarmPermissionOnResume(){
   }else if(prayerOnboardingWaitingForExactAlarm)toast('Izin Alarm & pengingat belum aktif. Silakan aktifkan lalu kembali ke Quran Premium.');
  }catch(error){console.warn('Pemeriksaan ulang izin alarm:',error);}
 }
-if(window.Capacitor?.isNativePlatform?.()){
+if(Capacitor.isNativePlatform()){
  App.addListener('backButton',handleHardwareBack).catch(error=>console.warn('Listener tombol kembali tidak aktif:',error));
  App.addListener('appStateChange',async({isActive})=>{if(isActive)await verifyExactAlarmPermissionOnResume();});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')verifyExactAlarmPermissionOnResume();});
