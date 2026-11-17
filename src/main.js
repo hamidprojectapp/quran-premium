@@ -316,9 +316,22 @@ function handleHardwareBack(){
  if(S.page!=='home'){S.page='home';S.ibadahTool=null;S.previousIbadahTool=null;render();return;}
  if(window.confirm('Keluar dari Quran Premium?'))App.exitApp();
 }
+async function verifyExactAlarmPermissionOnResume(){
+ const plugin=window.Capacitor?.Plugins?.PrayerReminder;
+ if(!plugin||(!prayerOnboardingWaitingForExactAlarm&&!prayerOnboardingLayer))return;
+ try{
+  const result=await plugin.checkExactAlarmPermission();
+  if(result?.allowed){
+   if(prayerOnboardingLayer)await finishPrayerOnboarding();
+   else{localStorage.setItem('quran-exact-alarm-onboarding-v1','1');prayerOnboardingWaitingForExactAlarm=false;prayerOnboardingLegacyOnly=false;}
+  }else if(prayerOnboardingWaitingForExactAlarm)toast('Izin Alarm & pengingat belum aktif. Silakan aktifkan lalu kembali ke Quran Premium.');
+ }catch(error){console.warn('Pemeriksaan ulang izin alarm:',error);}
+}
 if(window.Capacitor?.isNativePlatform?.()){
  App.addListener('backButton',handleHardwareBack).catch(error=>console.warn('Listener tombol kembali tidak aktif:',error));
- App.addListener('appStateChange',async({isActive})=>{if(!isActive||!prayerOnboardingWaitingForExactAlarm)return;try{const result=await window.Capacitor?.Plugins?.PrayerReminder?.checkExactAlarmPermission();if(result?.allowed)await finishPrayerOnboarding();else toast('Izin Alarm & pengingat belum aktif. Silakan aktifkan lalu kembali ke Quran Premium.');}catch(error){console.warn('Pemeriksaan ulang izin alarm:',error);}});
+ App.addListener('appStateChange',async({isActive})=>{if(isActive)await verifyExactAlarmPermissionOnResume();});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')verifyExactAlarmPermissionOnResume();});
+ window.addEventListener('focus',()=>verifyExactAlarmPermissionOnResume());
 }
 render();
 initializePrayerExperience();
