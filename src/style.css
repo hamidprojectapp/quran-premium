@@ -229,3 +229,12 @@
 .reminder-test-actions{display:grid;gap:8px;margin:14px 0 18px}.reminder-test-actions .reset{margin:0;padding:10px;border:1px solid #d8b66a35;border-radius:10px;color:var(--gold)}
 
 .surah-meaning{display:block;margin-top:4px;color:#d8b66a!important;font-size:10px!important}
+
+
+/* Beranda: banner salam dengan mushaf di tengah */
+.hero-quran{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;padding:23px 16px 10px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 65%,#1b7251 0%,#10513d 42%,#0b382d 100%);border:1px solid rgba(216,182,106,.38);box-shadow:inset 0 0 35px rgba(3,20,15,.24)}
+.hero-quran:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.2;background-image:radial-gradient(circle at 50% 50%,transparent 0 36%,rgba(226,195,119,.24) 36.5% 37%,transparent 37.5%),repeating-conic-gradient(from 0deg at 50% 50%,rgba(226,195,119,.12) 0deg 1deg,transparent 1deg 15deg);mask-image:radial-gradient(ellipse at center,#000 0%,transparent 76%)}
+.hero-quran label{position:relative;z-index:1;text-align:center;color:#f0d184;font-size:11px;letter-spacing:4px;font-weight:800}
+.hero-quran-art{position:relative;z-index:1;width:min(100%,370px);height:215px;display:grid;place-items:center;margin:0 auto}
+.hero-quran-art svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 8px 13px rgba(0,0,0,.28))}
+@media(max-width:380px){.hero-quran{min-height:235px;padding-top:20px}.hero-quran-art{height:190px}}
