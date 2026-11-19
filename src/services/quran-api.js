@@ -7,6 +7,7 @@ async function request(path) {
   return json.data;
 }
 export const getSurahs = () => request('/surah');
+export const getAyah = number => request('/ayah/' + number + '/editions/quran-uthmani,id.indonesian');
 export const getSurah = n => request('/surah/' + n + '/editions/quran-uthmani,id.indonesian');
 export const getJuz = async n => Promise.all([
   request('/juz/' + n + '/quran-uthmani'),
