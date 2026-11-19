@@ -154,7 +154,7 @@ async function loadDailyVerse(force=false){
  if(!force&&S.dailyVerseDay===dateKey&&S.dailyVerse)return;
  if(S.dailyVerseLoading)return;
  if(!force){try{const cached=JSON.parse(localStorage.getItem('quran-daily-verse')||'null');if(cached?.date===dateKey&&cached?.arabic&&cached?.translation){S.dailyVerse=cached;S.dailyVerseDay=dateKey;render();return;}}catch(error){console.warn('Cache ayat harian tidak dapat dibaca:',error);}}
- S.dailyVerseLoading=true;S.dailyVerseError=false;if(S.page==='home')render();
+ S.dailyVerse=null;S.dailyVerseDay='';S.dailyVerseLoading=true;S.dailyVerseError=false;if(S.page==='home')render();
  try{
   const globalAyah=getDailyAyahNumber(dateKey);
   const editions=await getAyah(globalAyah);
@@ -351,8 +351,8 @@ if(Capacitor.isNativePlatform()){
  App.addListener('backButton',handleHardwareBack).catch(error=>console.warn('Listener tombol kembali tidak aktif:',error));
 }
 if(window.Capacitor?.isNativePlatform?.()){
- App.addListener('appStateChange',async({isActive})=>{if(isActive)await verifyExactAlarmPermissionOnResume();});
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')verifyExactAlarmPermissionOnResume();});
+ App.addListener('appStateChange',async({isActive})=>{if(isActive){await verifyExactAlarmPermissionOnResume();if(S.page==='home')await loadDailyVerse();}});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){verifyExactAlarmPermissionOnResume();if(S.page==='home')loadDailyVerse();}});
  window.addEventListener('focus',()=>verifyExactAlarmPermissionOnResume());
 }
 render();
